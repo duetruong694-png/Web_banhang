@@ -182,7 +182,56 @@ public class CheckoutActivity extends AppCompatActivity {
         }
 
         // Xóa giỏ hàng sau khi đặt hàng
-        databaseHelper.clearCart(username);
+        long orderId =
+                databaseHelper.createOrder(
+                        username,
+                        name,
+                        phone,
+                        address,
+                        paymentMethod,
+                        totalMoney,
+                        cartList
+                );
+
+        if (orderId > 0) {
+
+            Toast.makeText(
+                    CheckoutActivity.this,
+                    "Đặt hàng thành công!",
+                    Toast.LENGTH_LONG
+            ).show();
+
+            Intent intent =
+                    new Intent(
+                            CheckoutActivity.this,
+                            UserActivity.class
+                    );
+
+            intent.putExtra(
+                    "username",
+                    username
+            );
+
+            startActivity(intent);
+
+            finish();
+
+        } else if (orderId == -2) {
+
+            Toast.makeText(
+                    CheckoutActivity.this,
+                    "Số lượng sản phẩm không đủ trong kho",
+                    Toast.LENGTH_LONG
+            ).show();
+
+        } else {
+
+            Toast.makeText(
+                    CheckoutActivity.this,
+                    "Không thể tạo đơn hàng",
+                    Toast.LENGTH_LONG
+            ).show();
+        }
 
         Toast.makeText(
                 this,

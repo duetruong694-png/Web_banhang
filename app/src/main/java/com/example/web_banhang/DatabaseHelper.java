@@ -11,7 +11,7 @@ import java.util.ArrayList;
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "shop.db";
-    private static final int DATABASE_VERSION = 3;
+    private static final int DATABASE_VERSION = 4;
 
     private static final String TABLE_PRODUCT = "products";
     private static final String TABLE_CART = "cart_items";
@@ -27,6 +27,10 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     @Override
     public void onCreate(SQLiteDatabase db) {
 
+        // =========================
+        // BẢNG SẢN PHẨM
+        // =========================
+
         String createProductTable =
                 "CREATE TABLE " + TABLE_PRODUCT + " (" +
                         "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
@@ -38,6 +42,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         ")";
 
         db.execSQL(createProductTable);
+
+
+        // =========================
+        // BẢNG GIỎ HÀNG
+        // =========================
 
         String createCartTable =
                 "CREATE TABLE " + TABLE_CART + " (" +
@@ -51,6 +60,43 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         ")";
 
         db.execSQL(createCartTable);
+
+
+        // =========================
+        // BẢNG ĐƠN HÀNG
+        // =========================
+
+        String createOrderTable =
+                "CREATE TABLE orders (" +
+                        "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                        "username TEXT NOT NULL, " +
+                        "customerName TEXT NOT NULL, " +
+                        "phone TEXT NOT NULL, " +
+                        "address TEXT NOT NULL, " +
+                        "paymentMethod TEXT NOT NULL, " +
+                        "totalMoney REAL NOT NULL, " +
+                        "status TEXT NOT NULL, " +
+                        "orderDate TEXT NOT NULL" +
+                        ")";
+
+        db.execSQL(createOrderTable);
+
+
+        // =========================
+        // BẢNG CHI TIẾT ĐƠN HÀNG
+        // =========================
+
+        String createOrderItemTable =
+                "CREATE TABLE order_items (" +
+                        "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                        "orderId INTEGER NOT NULL, " +
+                        "productId INTEGER NOT NULL, " +
+                        "productName TEXT NOT NULL, " +
+                        "price REAL NOT NULL, " +
+                        "quantity INTEGER NOT NULL" +
+                        ")";
+
+        db.execSQL(createOrderItemTable);
     }
 
     // =========================
@@ -64,17 +110,28 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             int newVersion
     ) {
 
+        // =========================
+        // VERSION 2
+        // =========================
+
         if (oldVersion < 2) {
 
             try {
+
                 db.execSQL(
                         "ALTER TABLE " +
                                 TABLE_PRODUCT +
                                 " ADD COLUMN imageUri TEXT"
                 );
+
             } catch (Exception ignored) {
             }
         }
+
+
+        // =========================
+        // VERSION 3
+        // =========================
 
         if (oldVersion < 3) {
 
@@ -91,6 +148,42 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                             ")";
 
             db.execSQL(createCartTable);
+        }
+
+
+        // =========================
+        // VERSION 4
+        // =========================
+
+        if (oldVersion < 4) {
+
+            String createOrderTable =
+                    "CREATE TABLE IF NOT EXISTS orders (" +
+                            "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                            "username TEXT NOT NULL, " +
+                            "customerName TEXT NOT NULL, " +
+                            "phone TEXT NOT NULL, " +
+                            "address TEXT NOT NULL, " +
+                            "paymentMethod TEXT NOT NULL, " +
+                            "totalMoney REAL NOT NULL, " +
+                            "status TEXT NOT NULL, " +
+                            "orderDate TEXT NOT NULL" +
+                            ")";
+
+            db.execSQL(createOrderTable);
+
+
+            String createOrderItemTable =
+                    "CREATE TABLE IF NOT EXISTS order_items (" +
+                            "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                            "orderId INTEGER NOT NULL, " +
+                            "productId INTEGER NOT NULL, " +
+                            "productName TEXT NOT NULL, " +
+                            "price REAL NOT NULL, " +
+                            "quantity INTEGER NOT NULL" +
+                            ")";
+
+            db.execSQL(createOrderItemTable);
         }
     }
 
@@ -567,5 +660,240 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         db.close();
 
         return result;
+    }
+    public long createOrder(
+            String username,
+            String customerName,
+            String phone,
+            String address,
+            String paymentMethod,
+            double totalMoney,
+            ArrayList<CartItem> cartList
+    ) {
+
+        SQLiteDatabase db =
+                this.getWritableDatabase();
+
+        long orderId = -1;
+
+        db.beginTransaction();
+
+        try {
+
+            // =========================
+            // TẠO ĐƠN HÀNG
+            // =========================
+
+            ContentValues orderValues =
+                    new ContentValues();
+
+            orderValues.put(
+                    "username",
+                    username
+            );
+
+            orderValues.put(
+                    "customerName",
+                    customerName
+            );
+
+            orderValues.put(
+                    "phone",
+                    phone
+            );
+
+            orderValues.put(
+                    "address",
+                    address
+            );
+
+            orderValues.put(
+                    "paymentMethod",
+                    paymentMethod
+            );
+
+            orderValues.put(
+                    "totalMoney",
+                    totalMoney
+            );
+
+            orderValues.put(
+                    "status",
+                    "Chờ xác nhận"
+            );
+
+            String orderDate =
+                    new java.text.SimpleDateFormat(
+                            "dd/MM/yyyy HH:mm:ss",
+                            java.util.Locale.getDefault()
+                    ).format(
+                            new java.util.Date()
+                    );
+
+            orderValues.put(
+                    "orderDate",
+                    orderDate
+            );
+
+            orderId =
+                    db.insert(
+                            "orders",
+                            null,
+                            orderValues
+                    );
+
+            if (orderId == -1) {
+
+                db.endTransaction();
+
+                db.close();
+
+                return -1;
+            }
+
+
+            // =========================
+            // LƯU CHI TIẾT ĐƠN
+            // =========================
+
+            for (CartItem item : cartList) {
+
+                ContentValues itemValues =
+                        new ContentValues();
+
+                itemValues.put(
+                        "orderId",
+                        orderId
+                );
+
+                itemValues.put(
+                        "productId",
+                        item.getProductId()
+                );
+
+                itemValues.put(
+                        "productName",
+                        item.getProductName()
+                );
+
+                itemValues.put(
+                        "price",
+                        item.getPrice()
+                );
+
+                itemValues.put(
+                        "quantity",
+                        item.getQuantity()
+                );
+
+                long itemResult =
+                        db.insert(
+                                "order_items",
+                                null,
+                                itemValues
+                        );
+
+                if (itemResult == -1) {
+
+                    db.endTransaction();
+
+                    db.close();
+
+                    return -1;
+                }
+            }
+
+
+            // =========================
+            // TRỪ TỒN KHO
+            // =========================
+
+            for (CartItem item : cartList) {
+
+                Cursor cursor =
+                        db.rawQuery(
+                                "SELECT stock FROM products " +
+                                        "WHERE id = ?",
+                                new String[]{
+                                        String.valueOf(
+                                                item.getProductId()
+                                        )
+                                }
+                        );
+
+                if (cursor.moveToFirst()) {
+
+                    int currentStock =
+                            cursor.getInt(
+                                    cursor.getColumnIndexOrThrow(
+                                            "stock"
+                                    )
+                            );
+
+                    int newStock =
+                            currentStock -
+                                    item.getQuantity();
+
+                    if (newStock < 0) {
+
+                        cursor.close();
+
+                        db.endTransaction();
+
+                        db.close();
+
+                        return -2;
+                    }
+
+                    ContentValues stockValues =
+                            new ContentValues();
+
+                    stockValues.put(
+                            "stock",
+                            newStock
+                    );
+
+                    db.update(
+                            TABLE_PRODUCT,
+                            stockValues,
+                            "id = ?",
+                            new String[]{
+                                    String.valueOf(
+                                            item.getProductId()
+                                    )
+                            }
+                    );
+                }
+
+                cursor.close();
+            }
+
+
+            // =========================
+            // XÓA GIỎ HÀNG
+            // =========================
+
+            db.delete(
+                    TABLE_CART,
+                    "username = ?",
+                    new String[]{
+                            username
+                    }
+            );
+
+
+            db.setTransactionSuccessful();
+
+        } catch (Exception e) {
+
+            orderId = -1;
+
+        } finally {
+
+            db.endTransaction();
+            db.close();
+        }
+
+        return orderId;
     }
 }
