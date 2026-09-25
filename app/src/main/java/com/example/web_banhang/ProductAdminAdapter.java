@@ -11,6 +11,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
+import java.io.File;
 import java.text.NumberFormat;
 import java.util.ArrayList;
 import java.util.Locale;
@@ -62,17 +63,25 @@ public class ProductAdminAdapter
 
         Product product = productList.get(position);
 
-        // =========================
-        // TÊN
-        // =========================
+        // =====================================================
+        // MÃ SẢN PHẨM
+        // =====================================================
+
+        holder.tvProductCode.setText(
+                "Mã SP: " + product.getProductCode()
+        );
+
+        // =====================================================
+        // TÊN SẢN PHẨM
+        // =====================================================
 
         holder.tvProductName.setText(
                 product.getName()
         );
 
-        // =========================
+        // =====================================================
         // GIÁ
-        // =========================
+        // =====================================================
 
         NumberFormat formatter =
                 NumberFormat.getCurrencyInstance(
@@ -83,37 +92,126 @@ public class ProductAdminAdapter
                 formatter.format(product.getPrice())
         );
 
-        // =========================
+        // =====================================================
         // TỒN KHO
-        // =========================
+        // =====================================================
 
         holder.tvProductStock.setText(
                 "Tồn kho: " + product.getStock()
         );
 
-        // =========================
-        // MÔ TẢ
-        // =========================
+        // =====================================================
+        // NGÀY BÁN
+        // =====================================================
 
-        holder.tvProductDescription.setText(
-                product.getDescription()
+        String saleDate = product.getSaleDate();
+
+        if (saleDate == null || saleDate.isEmpty()) {
+
+            holder.tvSaleDate.setText(
+                    "Ngày bán: Chưa chọn"
+            );
+
+        } else {
+
+            holder.tvSaleDate.setText(
+                    "Ngày bán: " + saleDate
+            );
+        }
+
+        // =====================================================
+        // TRẠNG THÁI
+        // =====================================================
+
+        String status = product.getStatus();
+
+        if (status == null || status.isEmpty()) {
+            status = "Đang bán";
+        }
+
+        holder.tvProductStatus.setText(
+                "Trạng thái: " + status
         );
 
-        // =========================
+        // =====================================================
+        // MÔ TẢ
+        // =====================================================
+
+        String description = product.getDescription();
+
+        if (description == null || description.isEmpty()) {
+
+            holder.tvProductDescription.setText(
+                    "Chưa có mô tả"
+            );
+
+        } else {
+
+            holder.tvProductDescription.setText(
+                    description
+            );
+        }
+
+        // =====================================================
         // HIỂN THỊ ẢNH
-        // =========================
+        // =====================================================
 
-        String imageUri =
-                product.getImageUri();
+        holder.imgProduct.setImageResource(
+                R.drawable.ic_launcher_foreground
+        );
 
-        if (imageUri != null
-                && !imageUri.isEmpty()) {
+        String imageUri = product.getImageUri();
+
+        if (imageUri != null && !imageUri.isEmpty()) {
 
             try {
 
-                holder.imgProduct.setImageURI(
-                        Uri.parse(imageUri)
-                );
+                File imageFile = new File(imageUri);
+
+                if (imageFile.exists()) {
+
+                    holder.imgProduct.setImageURI(
+                            Uri.fromFile(imageFile)
+                    );
+
+                } else if (imageUri.startsWith("content://")) {
+
+                    holder.imgProduct.setImageURI(
+                            Uri.parse(imageUri)
+                    );
+
+                } else {
+
+                    // =================================================
+                    // ẢNH DRAWABLE THEO TÊN SẢN PHẨM
+                    // =================================================
+
+                    String productName =
+                            product.getName()
+                                    .toLowerCase(Locale.ROOT);
+
+                    if (productName.contains("bút chì")
+                            || productName.contains("but chi")) {
+
+                        holder.imgProduct.setImageResource(
+                                R.drawable.butchi
+                        );
+
+                    } else if (productName.contains("tẩy")
+                            || productName.contains("tay")) {
+
+                        holder.imgProduct.setImageResource(
+                                R.drawable.tay
+                        );
+
+                    } else if (productName.contains("vở")
+                            || productName.contains("vo")) {
+
+                        holder.imgProduct.setImageResource(
+                                R.drawable.vo
+                        );
+                    }
+                }
 
             } catch (Exception e) {
 
@@ -121,25 +219,19 @@ public class ProductAdminAdapter
                         R.drawable.ic_launcher_foreground
                 );
             }
-
-        } else {
-
-            holder.imgProduct.setImageResource(
-                    R.drawable.ic_launcher_foreground
-            );
         }
 
-        // =========================
+        // =====================================================
         // NÚT SỬA
-        // =========================
+        // =====================================================
 
         holder.btnEdit.setOnClickListener(v ->
                 listener.onEdit(product)
         );
 
-        // =========================
+        // =====================================================
         // NÚT XÓA
-        // =========================
+        // =====================================================
 
         holder.btnDelete.setOnClickListener(v ->
                 listener.onDelete(product)
@@ -151,14 +243,21 @@ public class ProductAdminAdapter
         return productList.size();
     }
 
+    // =========================================================
+    // VIEW HOLDER
+    // =========================================================
+
     public static class ProductViewHolder
             extends RecyclerView.ViewHolder {
 
         ImageView imgProduct;
 
+        TextView tvProductCode;
         TextView tvProductName;
         TextView tvProductPrice;
         TextView tvProductStock;
+        TextView tvSaleDate;
+        TextView tvProductStatus;
         TextView tvProductDescription;
 
         Button btnEdit;
@@ -175,6 +274,11 @@ public class ProductAdminAdapter
                             R.id.imgProduct
                     );
 
+            tvProductCode =
+                    itemView.findViewById(
+                            R.id.tvProductCode
+                    );
+
             tvProductName =
                     itemView.findViewById(
                             R.id.tvProductName
@@ -188,6 +292,16 @@ public class ProductAdminAdapter
             tvProductStock =
                     itemView.findViewById(
                             R.id.tvProductStock
+                    );
+
+            tvSaleDate =
+                    itemView.findViewById(
+                            R.id.tvSaleDate
+                    );
+
+            tvProductStatus =
+                    itemView.findViewById(
+                            R.id.tvProductStatus
                     );
 
             tvProductDescription =

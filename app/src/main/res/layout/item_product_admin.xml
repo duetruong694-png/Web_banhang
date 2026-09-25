@@ -3,22 +3,28 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="horizontal"
-    android:padding="10dp"
     android:layout_marginBottom="10dp"
-    android:background="#FFFFFF">
+    android:background="#FFFFFF"
+    android:elevation="3dp"
+    android:orientation="horizontal"
+    android:padding="10dp">
 
+    <!-- ===================================================== -->
     <!-- ẢNH SẢN PHẨM -->
+    <!-- ===================================================== -->
 
     <ImageView
         android:id="@+id/imgProduct"
         android:layout_width="100dp"
-        android:layout_height="120dp"
-        android:src="@drawable/ic_launcher_foreground"
+        android:layout_height="140dp"
+        android:background="#E8ECF1"
+        android:contentDescription="Ảnh sản phẩm"
         android:scaleType="centerInside"
-        android:background="#E8ECF1" />
+        android:src="@drawable/ic_launcher_foreground" />
 
-    <!-- THÔNG TIN -->
+    <!-- ===================================================== -->
+    <!-- THÔNG TIN SẢN PHẨM -->
+    <!-- ===================================================== -->
 
     <LinearLayout
         android:layout_width="0dp"
@@ -27,64 +33,112 @@
         android:orientation="vertical"
         android:paddingStart="12dp">
 
+        <!-- MÃ SẢN PHẨM -->
+
+        <TextView
+            android:id="@+id/tvProductCode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Mã SP: SP001"
+            android:textColor="#777777"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+
+        <!-- TÊN -->
+
         <TextView
             android:id="@+id/tvProductName"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
             android:text="Tên sản phẩm"
+            android:textColor="#172B4D"
             android:textSize="18sp"
-            android:textStyle="bold"
-            android:textColor="#172B4D" />
+            android:textStyle="bold" />
+
+        <!-- GIÁ -->
 
         <TextView
             android:id="@+id/tvProductPrice"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="5dp"
-            android:text="150.000 VNĐ"
+            android:text="150.000 ₫"
+            android:textColor="#D32F2F"
             android:textSize="16sp"
-            android:textStyle="bold"
-            android:textColor="#D32F2F" />
+            android:textStyle="bold" />
+
+        <!-- TỒN KHO -->
 
         <TextView
             android:id="@+id/tvProductStock"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="5dp"
+            android:layout_marginTop="4dp"
             android:text="Tồn kho: 20"
-            android:textSize="14sp" />
+            android:textColor="#444444"
+            android:textSize="13sp" />
+
+        <!-- NGÀY BÁN -->
+
+        <TextView
+            android:id="@+id/tvSaleDate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="3dp"
+            android:text="Ngày bán: 21/09/2026"
+            android:textColor="#444444"
+            android:textSize="13sp" />
+
+        <!-- TRẠNG THÁI -->
+
+        <TextView
+            android:id="@+id/tvProductStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Trạng thái: Đang bán"
+            android:textColor="#2E7D32"
+            android:textSize="13sp"
+            android:textStyle="bold" />
+
+        <!-- MÔ TẢ -->
 
         <TextView
             android:id="@+id/tvProductDescription"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
+            android:maxLines="2"
             android:text="Mô tả sản phẩm"
-            android:textSize="13sp"
             android:textColor="#666666"
-            android:maxLines="2" />
+            android:textSize="12sp" />
+
+        <!-- ================================================= -->
+        <!-- NÚT SỬA / XÓA -->
+        <!-- ================================================= -->
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginTop="8dp">
+            android:layout_marginTop="8dp"
+            android:orientation="horizontal">
 
             <Button
                 android:id="@+id/btnEdit"
                 android:layout_width="0dp"
                 android:layout_height="42dp"
                 android:layout_weight="1"
-                android:text="Sửa"
+                android:text="✏ Sửa"
                 android:textSize="12sp" />
 
             <Button
                 android:id="@+id/btnDelete"
                 android:layout_width="0dp"
                 android:layout_height="42dp"
-                android:layout_weight="1"
                 android:layout_marginStart="5dp"
-                android:text="Xóa"
+                android:layout_weight="1"
+                android:text="🗑 Xóa"
                 android:textSize="12sp" />
 
         </LinearLayout>
