@@ -1,64 +1,274 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:gravity="center"
-    android:padding="24dp"
-    android:background="#F5F7FA">
+    android:fillViewport="true"
+    android:background="@drawable/bg_login">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="🛒"
-        android:textSize="50sp"
-        android:layout_marginBottom="10dp" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="CỬA HÀNG ABC"
-        android:textSize="28sp"
-        android:textStyle="bold"
-        android:textColor="#172B4D"
-        android:layout_marginBottom="35dp" />
-
-    <com.google.android.material.textfield.TextInputLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Tên đăng nhập">
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:paddingStart="24dp"
+        android:paddingEnd="24dp"
+        android:paddingTop="30dp"
+        android:paddingBottom="30dp">
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/edtUsername"
+        <!-- ================= LOGO ================= -->
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="DAPP"
+            android:textSize="38sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:letterSpacing="0.08"
+            android:layout_marginTop="15dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="CỬA HÀNG ABC"
+            android:textSize="17sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:layout_marginTop="2dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Mua sắm thông minh • Sống tiện lợi"
+            android:textSize="13sp"
+            android:textColor="#FFE8E0"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="22dp"/>
+
+
+        <!-- ================= CARD LOGIN ================= -->
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="text" />
+            android:orientation="vertical"
+            android:padding="24dp"
+            android:background="@drawable/bg_login_card"
+            android:elevation="10dp">
 
-    </com.google.android.material.textfield.TextInputLayout>
+            <!-- Tiêu đề -->
 
-    <com.google.android.material.textfield.TextInputLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="15dp"
-        android:hint="Mật khẩu"
-        app:endIconMode="password_toggle">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Chào mừng trở lại 👋"
+                android:textSize="23sp"
+                android:textStyle="bold"
+                android:textColor="#222222"/>
 
-        <com.google.android.material.textfield.TextInputEditText
-            android:id="@+id/edtPassword"
-            android:layout_width="match_parent"
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Đăng nhập để tiếp tục mua sắm"
+                android:textSize="13sp"
+                android:textColor="#777777"
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="22dp"/>
+
+
+            <!-- ================= USERNAME ================= -->
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tên đăng nhập"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="#444444"
+                android:layout_marginBottom="6dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingStart="14dp"
+                android:paddingEnd="12dp"
+                android:background="@drawable/bg_login_input">
+
+                <TextView
+                    android:layout_width="32dp"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="👤"
+                    android:textSize="19sp"/>
+
+                <EditText
+                    android:id="@+id/edtUsername"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:hint="Nhập tên đăng nhập"
+                    android:textSize="14sp"
+                    android:textColor="#222222"
+                    android:textColorHint="#999999"
+                    android:inputType="text"
+                    android:singleLine="true"
+                    android:background="@android:color/transparent"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="4dp"/>
+
+            </LinearLayout>
+
+
+            <!-- ================= PASSWORD ================= -->
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mật khẩu"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="#444444"
+                android:layout_marginTop="16dp"
+                android:layout_marginBottom="6dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingStart="14dp"
+                android:paddingEnd="8dp"
+                android:background="@drawable/bg_login_input">
+
+                <TextView
+                    android:layout_width="32dp"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="🔒"
+                    android:textSize="18sp"/>
+
+                <EditText
+                    android:id="@+id/edtPassword"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:hint="Nhập mật khẩu"
+                    android:textSize="14sp"
+                    android:textColor="#222222"
+                    android:textColorHint="#999999"
+                    android:inputType="textPassword"
+                    android:singleLine="true"
+                    android:background="@android:color/transparent"
+                    android:paddingStart="8dp"
+                    android:paddingEnd="4dp"/>
+
+                <TextView
+                    android:id="@+id/tvShowPassword"
+                    android:layout_width="42dp"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="👁"
+                    android:textSize="18sp"
+                    android:clickable="true"
+                    android:focusable="true"/>
+
+            </LinearLayout>
+
+
+            <!-- ================= LOGIN BUTTON ================= -->
+
+            <Button
+                android:id="@+id/btnLogin"
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:layout_marginTop="24dp"
+                android:text="ĐĂNG NHẬP"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:background="@drawable/bg_login_main_button"
+                android:elevation="4dp"
+                android:stateListAnimator="@null"/>
+
+
+            <!-- ================= DIVIDER ================= -->
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="18dp"
+                android:layout_marginBottom="15dp"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1"
+                    android:background="#E5E7EB"/>
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="  hoặc  "
+                    android:textSize="12sp"
+                    android:textColor="#999999"/>
+
+                <View
+                    android:layout_width="0dp"
+                    android:layout_height="1dp"
+                    android:layout_weight="1"
+                    android:background="#E5E7EB"/>
+
+            </LinearLayout>
+
+
+            <!-- ================= REGISTER ================= -->
+
+            <Button
+                android:id="@+id/btnRegister"
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:text="TẠO TÀI KHOẢN MỚI"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                android:textColor="#EE4D2D"
+                android:background="@drawable/bg_register_button"
+                android:stateListAnimator="@null"/>
+
+        </LinearLayout>
+
+
+        <!-- ================= BACK HOME ================= -->
+
+        <TextView
+            android:id="@+id/tvBackHome"
+            android:layout_width="wrap_content"
+            android:layout_height="48dp"
+            android:layout_marginTop="18dp"
+            android:gravity="center"
+            android:text="←  Quay lại trang chủ"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:paddingStart="16dp"
+            android:paddingEnd="16dp"
+            android:clickable="true"
+            android:focusable="true"/>
+
+
+        <TextView
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:inputType="textPassword" />
+            android:text="© 2026 DAPP • CỬA HÀNG ABC"
+            android:textSize="11sp"
+            android:textColor="#FFE8E0"
+            android:layout_marginTop="12dp"/>
 
-    </com.google.android.material.textfield.TextInputLayout>
+    </LinearLayout>
 
-    <Button
-        android:id="@+id/btnLogin"
-        android:layout_width="match_parent"
-        android:layout_height="55dp"
-        android:layout_marginTop="25dp"
-        android:text="ĐĂNG NHẬP"
-        android:textSize="16sp" />
-
-</LinearLayout>
+</ScrollView>

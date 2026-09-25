@@ -16,7 +16,7 @@
 
         <!-- Màn hình User -->
         <activity
-            android:name=".UserActivity"
+            android:name=".LoginActivity"
             android:exported="false" />
         <activity
             android:name=".AddProductActivity"
@@ -27,16 +27,33 @@
         <activity
             android:name=".CartActivity"
             android:exported="false" />
+        <activity
+            android:name=".ProductDetailActivity"
+            android:exported="false" />
+        <activity
+            android:name=".OrderManagementActivity"
+            android:exported="false" />
 
+        <activity
+            android:name=".OrderDetailActivity"
+            android:exported="false" />
+        <activity
+            android:name=".RegisterActivity"
+            android:exported="false" />
         <!-- Màn hình đăng nhập -->
         <activity
-            android:name=".LoginActivity"
+            android:name=".UserActivity"
+            android:exported="false" />
+
+        <activity
+            android:name=".SplashActivity"
             android:exported="true">
+
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
         </activity>
         <activity
             android:name=".CheckoutActivity"

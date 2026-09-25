@@ -1,20 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="#F5F7FA">
+    android:background="#F5F5F5">
 
+    <!-- ========================= -->
     <!-- HEADER -->
+    <!-- ========================= -->
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="75dp"
+        android:layout_height="85dp"
         android:orientation="vertical"
         android:gravity="center"
-        android:background="#172B4D">
+        android:background="#EE4D2D">
 
         <TextView
             android:layout_width="wrap_content"
@@ -27,64 +30,113 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="QUẢN TRỊ VIÊN"
-            android:textColor="#DDE6F5"
-            android:textSize="12sp" />
+            android:layout_marginTop="3dp"
+            android:text="DAPP • QUẢN TRỊ VIÊN"
+            android:textColor="#FFE0D6"
+            android:textSize="12sp"
+            android:textStyle="bold" />
 
     </LinearLayout>
 
-    <!-- MENU -->
+    <!-- ========================= -->
+    <!-- MENU ADMIN -->
+    <!-- ========================= -->
+
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="70dp"
+        android:scrollbars="none"
+        android:background="#FFFFFF">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingStart="8dp"
+            android:paddingEnd="8dp">
+
+            <Button
+                android:id="@+id/btnDanhSach"
+                android:layout_width="120dp"
+                android:layout_height="50dp"
+                android:text="📦 Sản phẩm"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:background="@drawable/bg_button_login" />
+
+            <Button
+                android:id="@+id/btnThemSanPham"
+                android:layout_width="120dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="6dp"
+                android:text="➕ Thêm SP"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:background="@drawable/bg_button_buy" />
+
+            <Button
+                android:id="@+id/btnDonHang"
+                android:layout_width="120dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="6dp"
+                android:text="🧾 Đơn hàng"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:background="@drawable/bg_button_cart" />
+
+            <Button
+                android:id="@+id/btnDangXuat"
+                android:layout_width="100dp"
+                android:layout_height="50dp"
+                android:layout_marginStart="6dp"
+                android:text="🚪 Thoát"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:background="@drawable/bg_button_logout" />
+
+        </LinearLayout>
+
+    </HorizontalScrollView>
+
+    <!-- ========================= -->
+    <!-- TIÊU ĐỀ -->
+    <!-- ========================= -->
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="60dp"
         android:orientation="horizontal"
         android:gravity="center_vertical"
-        android:paddingStart="8dp"
-        android:paddingEnd="8dp"
-        android:background="#FFFFFF">
+        android:paddingStart="16dp"
+        android:paddingEnd="16dp">
 
-        <Button
-            android:id="@+id/btnDanhSach"
+        <TextView
             android:layout_width="0dp"
-            android:layout_height="48dp"
+            android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:text="Danh sách"
-            android:textSize="12sp" />
+            android:text="QUẢN LÝ SẢN PHẨM"
+            android:textColor="#333333"
+            android:textSize="20sp"
+            android:textStyle="bold" />
 
-        <Button
-            android:id="@+id/btnThemSanPham"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_weight="1"
-            android:layout_marginStart="5dp"
-            android:text="+ Thêm SP"
-            android:textSize="12sp" />
-
-        <Button
-            android:id="@+id/btnDangXuat"
-            android:layout_width="0dp"
-            android:layout_height="48dp"
-            android:layout_weight="1"
-            android:layout_marginStart="5dp"
-            android:text="Thoát"
-            android:textSize="12sp" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="DAPP"
+            android:textColor="#EE4D2D"
+            android:textSize="14sp"
+            android:textStyle="bold" />
 
     </LinearLayout>
 
-    <!-- TIÊU ĐỀ -->
-
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="55dp"
-        android:gravity="center_vertical"
-        android:paddingStart="16dp"
-        android:text="QUẢN LÝ SẢN PHẨM"
-        android:textColor="#172B4D"
-        android:textSize="20sp"
-        android:textStyle="bold" />
-
-    <!-- RECYCLER VIEW -->
+    <!-- ========================= -->
+    <!-- DANH SÁCH -->
+    <!-- ========================= -->
 
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recyclerProducts"
@@ -92,6 +144,7 @@
         android:layout_height="0dp"
         android:layout_weight="1"
         android:padding="8dp"
+        android:clipToPadding="false"
         app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager" />
 
 </LinearLayout>

@@ -4,133 +4,224 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#F5F5F5">
+    android:background="#F5F5F5"
+    android:fillViewport="true">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="20dp">
+        android:padding="16dp">
 
-        <TextView
+        <!-- HEADER -->
+
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="THÊM SẢN PHẨM"
-            android:textSize="24sp"
-            android:textStyle="bold"
-            android:textColor="#000000"
+            android:layout_height="80dp"
+            android:orientation="vertical"
             android:gravity="center"
-            android:layout_marginBottom="20dp" />
+            android:background="#EE4D2D"
+            android:padding="10dp">
 
-        <!-- ẢNH SẢN PHẨM -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="🛒 DAPP"
+                android:textColor="#FFFFFF"
+                android:textSize="23sp"
+                android:textStyle="bold" />
 
-        <ImageView
-            android:id="@+id/imgProductPreview"
-            android:layout_width="180dp"
-            android:layout_height="180dp"
-            android:layout_gravity="center"
-            android:src="@drawable/ic_launcher_foreground"
-            android:scaleType="centerCrop"
-            android:background="#DDDDDD"
-            android:contentDescription="Ảnh sản phẩm" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="3dp"
+                android:text="THÊM SẢN PHẨM"
+                android:textColor="#FFE0D6"
+                android:textSize="12sp"
+                android:textStyle="bold" />
 
-        <Button
-            android:id="@+id/btnChooseImage"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="📷 CHỌN ẢNH"
-            android:textSize="16sp"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="20dp" />
+        </LinearLayout>
 
-        <!-- TÊN -->
+
+        <!-- TIÊU ĐỀ -->
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Tên sản phẩm"
-            android:textStyle="bold"
-            android:textSize="16sp" />
+            android:layout_marginTop="18dp"
+            android:text="Thông tin sản phẩm"
+            android:textColor="#333333"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+
+        <!-- MÃ SẢN PHẨM -->
+
+        <EditText
+            android:id="@+id/edtProductCode"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:layout_marginTop="12dp"
+            android:hint="Mã sản phẩm"
+            android:inputType="text"
+            android:padding="14dp"
+            android:background="@drawable/bg_search" />
+
+
+        <!-- TÊN SẢN PHẨM -->
 
         <EditText
             android:id="@+id/edtProductName"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Nhập tên sản phẩm"
+            android:layout_height="55dp"
+            android:layout_marginTop="10dp"
+            android:hint="Tên sản phẩm"
             android:inputType="text"
-            android:layout_marginBottom="15dp" />
+            android:padding="14dp"
+            android:background="@drawable/bg_search" />
+
 
         <!-- GIÁ -->
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Giá sản phẩm"
-            android:textStyle="bold"
-            android:textSize="16sp" />
 
         <EditText
             android:id="@+id/edtProductPrice"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Nhập giá sản phẩm"
+            android:layout_height="55dp"
+            android:layout_marginTop="10dp"
+            android:hint="Giá sản phẩm"
             android:inputType="numberDecimal"
-            android:layout_marginBottom="15dp" />
+            android:padding="14dp"
+            android:background="@drawable/bg_search" />
+
 
         <!-- SỐ LƯỢNG -->
-
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Số lượng tồn kho"
-            android:textStyle="bold"
-            android:textSize="16sp" />
 
         <EditText
             android:id="@+id/edtProductStock"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:hint="Nhập số lượng"
+            android:layout_height="55dp"
+            android:layout_marginTop="10dp"
+            android:hint="Số lượng / tồn kho"
             android:inputType="number"
-            android:layout_marginBottom="15dp" />
+            android:padding="14dp"
+            android:background="@drawable/bg_search" />
 
-        <!-- MÔ TẢ -->
+
+        <!-- NGÀY BÁN -->
+
+        <EditText
+            android:id="@+id/edtSaleDate"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:layout_marginTop="10dp"
+            android:hint="Ngày bán"
+            android:focusable="false"
+            android:clickable="true"
+            android:padding="14dp"
+            android:drawableEnd="@android:drawable/ic_menu_my_calendar"
+            android:background="@drawable/bg_search" />
+
+
+        <!-- TRẠNG THÁI -->
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Mô tả sản phẩm"
-            android:textStyle="bold"
-            android:textSize="16sp" />
+            android:layout_marginTop="14dp"
+            android:text="Trạng thái sản phẩm"
+            android:textColor="#555555"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <Spinner
+            android:id="@+id/spinnerStatus"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:layout_marginTop="6dp"
+            android:background="@drawable/bg_search"
+            android:paddingStart="10dp"
+            android:paddingEnd="10dp" />
+
+
+        <!-- MÔ TẢ -->
 
         <EditText
             android:id="@+id/edtProductDescription"
             android:layout_width="match_parent"
             android:layout_height="120dp"
-            android:hint="Nhập mô tả sản phẩm"
+            android:layout_marginTop="10dp"
+            android:hint="Mô tả sản phẩm"
             android:gravity="top"
             android:inputType="textMultiLine"
-            android:layout_marginBottom="20dp" />
+            android:padding="14dp"
+            android:background="@drawable/bg_search" />
 
-        <!-- NÚT LƯU -->
 
-        <Button
-            android:id="@+id/btnSaveProduct"
+        <!-- HÌNH ẢNH -->
+
+        <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="LƯU SẢN PHẨM"
-            android:textSize="16sp"
+            android:layout_marginTop="18dp"
+            android:text="Hình ảnh sản phẩm"
+            android:textColor="#555555"
+            android:textSize="14sp"
+            android:textStyle="bold" />
+
+        <ImageView
+            android:id="@+id/imgProductPreview"
+            android:layout_width="match_parent"
+            android:layout_height="180dp"
+            android:layout_marginTop="8dp"
+            android:scaleType="centerInside"
+            android:src="@android:drawable/ic_menu_gallery"
+            android:background="@drawable/bg_product_card"
+            android:contentDescription="Ảnh sản phẩm" />
+
+        <Button
+            android:id="@+id/btnChooseImage"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="10dp"
+            android:text="📷 Chọn hình ảnh"
+            android:textColor="#FFFFFF"
+            android:textSize="15sp"
             android:textStyle="bold"
-            android:layout_marginBottom="10dp" />
+            android:background="@drawable/bg_button_cart" />
 
-        <!-- NÚT HỦY -->
 
-        <Button
-            android:id="@+id/btnCancel"
+        <!-- NÚT -->
+
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="HỦY"
-            android:textSize="16sp" />
+            android:layout_marginTop="20dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnCancel"
+                android:layout_width="0dp"
+                android:layout_height="55dp"
+                android:layout_weight="1"
+                android:text="Hủy"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:background="@drawable/bg_button_logout" />
+
+            <Button
+                android:id="@+id/btnSaveProduct"
+                android:layout_width="0dp"
+                android:layout_height="55dp"
+                android:layout_weight="1"
+                android:layout_marginStart="10dp"
+                android:text="💾 Lưu sản phẩm"
+                android:textColor="#FFFFFF"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:background="@drawable/bg_button_buy" />
+
+        </LinearLayout>
 
     </LinearLayout>
 

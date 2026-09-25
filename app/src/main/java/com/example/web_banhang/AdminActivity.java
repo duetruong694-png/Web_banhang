@@ -14,14 +14,13 @@ public class AdminActivity extends AppCompatActivity {
 
     private Button btnDanhSach;
     private Button btnThemSanPham;
+    private Button btnDonHang;
     private Button btnDangXuat;
 
     private RecyclerView recyclerProducts;
 
     private DatabaseHelper databaseHelper;
-
     private ProductAdminAdapter adapter;
-
     private ArrayList<Product> productList;
 
     @Override
@@ -34,47 +33,53 @@ public class AdminActivity extends AppCompatActivity {
         // ÁNH XẠ
         // =========================
 
-        btnDanhSach =
-                findViewById(R.id.btnDanhSach);
+        btnDanhSach = findViewById(R.id.btnDanhSach);
+        btnThemSanPham = findViewById(R.id.btnThemSanPham);
+        btnDonHang = findViewById(R.id.btnDonHang);
+        btnDangXuat = findViewById(R.id.btnDangXuat);
 
-        btnThemSanPham =
-                findViewById(R.id.btnThemSanPham);
+        recyclerProducts = findViewById(
+                R.id.recyclerProducts
+        );
 
-        btnDangXuat =
-                findViewById(R.id.btnDangXuat);
-
-        recyclerProducts =
-                findViewById(R.id.recyclerProducts);
-
-        // =========================
-        // DATABASE
-        // =========================
-
-        databaseHelper =
-                new DatabaseHelper(this);
+        databaseHelper = new DatabaseHelper(this);
 
         // =========================
-        // NÚT THÊM
+        // DANH SÁCH SẢN PHẨM
+        // =========================
+
+        btnDanhSach.setOnClickListener(
+                v -> loadProducts()
+        );
+
+        // =========================
+        // THÊM SẢN PHẨM
         // =========================
 
         btnThemSanPham.setOnClickListener(v -> {
 
-            Intent intent = new Intent(
-                    AdminActivity.this,
-                    AddProductActivity.class
-            );
+            Intent intent =
+                    new Intent(
+                            AdminActivity.this,
+                            AddProductActivity.class
+                    );
 
             startActivity(intent);
         });
 
         // =========================
-        // NÚT DANH SÁCH
+        // QUẢN LÝ ĐƠN HÀNG
         // =========================
 
-        btnDanhSach.setOnClickListener(v -> {
+        btnDonHang.setOnClickListener(v -> {
 
-            loadProducts();
+            Intent intent =
+                    new Intent(
+                            AdminActivity.this,
+                            OrderManagementActivity.class
+                    );
 
+            startActivity(intent);
         });
 
         // =========================
@@ -83,9 +88,23 @@ public class AdminActivity extends AppCompatActivity {
 
         btnDangXuat.setOnClickListener(v -> {
 
-            Intent intent = new Intent(
-                    AdminActivity.this,
-                    LoginActivity.class
+            getSharedPreferences(
+                    "LOGIN",
+                    MODE_PRIVATE
+            )
+                    .edit()
+                    .clear()
+                    .apply();
+
+            Intent intent =
+                    new Intent(
+                            AdminActivity.this,
+                            LoginActivity.class
+                    );
+
+            intent.setFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK
+                            | Intent.FLAG_ACTIVITY_CLEAR_TASK
             );
 
             startActivity(intent);
@@ -94,15 +113,15 @@ public class AdminActivity extends AppCompatActivity {
         });
 
         // =========================
-        // LOAD SẢN PHẨM
+        // LOAD
         // =========================
 
         loadProducts();
     }
 
-    // =========================
-    // LOAD DATABASE
-    // =========================
+    // =====================================================
+    // LOAD PRODUCT
+    // =====================================================
 
     private void loadProducts() {
 
@@ -116,15 +135,15 @@ public class AdminActivity extends AppCompatActivity {
 
                             @Override
                             public void onEdit(
-                                    Product product) {
-
+                                    Product product
+                            ) {
                                 editProduct(product);
                             }
 
                             @Override
                             public void onDelete(
-                                    Product product) {
-
+                                    Product product
+                            ) {
                                 deleteProduct(product);
                             }
                         }
@@ -133,9 +152,9 @@ public class AdminActivity extends AppCompatActivity {
         recyclerProducts.setAdapter(adapter);
     }
 
-    // =========================
-    // XÓA SẢN PHẨM
-    // =========================
+    // =====================================================
+    // DELETE
+    // =====================================================
 
     private void deleteProduct(Product product) {
 
@@ -175,25 +194,29 @@ public class AdminActivity extends AppCompatActivity {
                 .show();
     }
 
-    // =========================
-    // SỬA SẢN PHẨM
-    // =========================
+    // =====================================================
+    // EDIT
+    // =====================================================
 
     private void editProduct(Product product) {
 
-        Intent intent = new Intent(
-                AdminActivity.this,
-                EditProductActivity.class
-        );
+        Intent intent =
+                new Intent(
+                        AdminActivity.this,
+                        EditProductActivity.class
+                );
 
-        intent.putExtra("product_id", product.getId());
+        intent.putExtra(
+                "product_id",
+                product.getId()
+        );
 
         startActivity(intent);
     }
 
-    // =========================
-    // KHI QUAY LẠI ADMIN
-    // =========================
+    // =====================================================
+    // RESUME
+    // =====================================================
 
     @Override
     protected void onResume() {

@@ -1,22 +1,35 @@
 package com.example.web_banhang;
 
+import android.app.DatePickerDialog;
+import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.appcompat.app.AppCompatActivity;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.util.Calendar;
+
 public class EditProductActivity extends AppCompatActivity {
 
+    private EditText edtProductCode;
     private EditText edtProductName;
     private EditText edtProductPrice;
     private EditText edtProductStock;
+    private EditText edtSaleDate;
     private EditText edtProductDescription;
+
+    private Spinner spinnerStatus;
 
     private ImageView imgProductPreview;
 
@@ -28,24 +41,60 @@ public class EditProductActivity extends AppCompatActivity {
 
     private int productId;
 
-    // Ảnh hiện tại
-    private String selectedImageUri = null;
+    private Product currentProduct;
 
-    // Chọn ảnh mới
+    private String selectedImagePath = null;
+
+    // =========================================================
+    // CHỌN ẢNH
+    // =========================================================
+
     private final ActivityResultLauncher<String> imagePicker =
             registerForActivityResult(
                     new ActivityResultContracts.GetContent(),
                     uri -> {
 
-                        if (uri != null) {
+                        if (uri == null) {
+                            return;
+                        }
 
-                            selectedImageUri =
-                                    uri.toString();
+                        String savedPath =
+                                copyImageToInternalStorage(uri);
 
-                            imgProductPreview.setImageURI(uri);
+                        if (savedPath != null) {
+
+                            selectedImagePath =
+                                    savedPath;
+
+                            imgProductPreview
+                                    .setImageURI(
+                                            Uri.fromFile(
+                                                    new File(
+                                                            savedPath
+                                                    )
+                                            )
+                                    );
+
+                            Toast.makeText(
+                                    EditProductActivity.this,
+                                    "Đã chọn ảnh mới",
+                                    Toast.LENGTH_SHORT
+                            ).show();
+
+                        } else {
+
+                            Toast.makeText(
+                                    EditProductActivity.this,
+                                    "Không thể lưu ảnh",
+                                    Toast.LENGTH_SHORT
+                            ).show();
                         }
                     }
             );
+
+    // =========================================================
+    // ON CREATE
+    // =========================================================
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,40 +104,8 @@ public class EditProductActivity extends AppCompatActivity {
                 R.layout.activity_edit_product
         );
 
-        // =========================
-        // ÁNH XẠ
-        // =========================
-
-        edtProductName =
-                findViewById(R.id.edtProductName);
-
-        edtProductPrice =
-                findViewById(R.id.edtProductPrice);
-
-        edtProductStock =
-                findViewById(R.id.edtProductStock);
-
-        edtProductDescription =
-                findViewById(R.id.edtProductDescription);
-
-        imgProductPreview =
-                findViewById(R.id.imgProductPreview);
-
-        btnChooseImage =
-                findViewById(R.id.btnChooseImage);
-
-        btnUpdateProduct =
-                findViewById(R.id.btnUpdateProduct);
-
-        btnCancel =
-                findViewById(R.id.btnCancel);
-
         databaseHelper =
                 new DatabaseHelper(this);
-
-        // =========================
-        // NHẬN ID SẢN PHẨM
-        // =========================
 
         productId =
                 getIntent().getIntExtra(
@@ -108,54 +125,139 @@ public class EditProductActivity extends AppCompatActivity {
             return;
         }
 
-        // =========================
-        // LOAD SẢN PHẨM
-        // =========================
+        // -----------------------------------------------------
+        // VIEW
+        // -----------------------------------------------------
+
+        edtProductCode =
+                findViewById(
+                        R.id.edtProductCode
+                );
+
+        edtProductName =
+                findViewById(
+                        R.id.edtProductName
+                );
+
+        edtProductPrice =
+                findViewById(
+                        R.id.edtProductPrice
+                );
+
+        edtProductStock =
+                findViewById(
+                        R.id.edtProductStock
+                );
+
+        edtSaleDate =
+                findViewById(
+                        R.id.edtSaleDate
+                );
+
+        edtProductDescription =
+                findViewById(
+                        R.id.edtProductDescription
+                );
+
+        spinnerStatus =
+                findViewById(
+                        R.id.spinnerStatus
+                );
+
+        imgProductPreview =
+                findViewById(
+                        R.id.imgProductPreview
+                );
+
+        btnChooseImage =
+                findViewById(
+                        R.id.btnChooseImage
+                );
+
+        btnUpdateProduct =
+                findViewById(
+                        R.id.btnUpdateProduct
+                );
+
+        btnCancel =
+                findViewById(
+                        R.id.btnCancel
+                );
+
+        // -----------------------------------------------------
+        // STATUS
+        // -----------------------------------------------------
+
+        String[] statuses = {
+                "Đang bán",
+                "Ngừng bán"
+        };
+
+        ArrayAdapter<String> statusAdapter =
+                new ArrayAdapter<>(
+                        this,
+                        android.R.layout.simple_spinner_item,
+                        statuses
+                );
+
+        statusAdapter.setDropDownViewResource(
+                android.R.layout.simple_spinner_dropdown_item
+        );
+
+        spinnerStatus.setAdapter(
+                statusAdapter
+        );
+
+        // -----------------------------------------------------
+        // DATE
+        // -----------------------------------------------------
+
+        edtSaleDate.setFocusable(false);
+        edtSaleDate.setClickable(true);
+
+        edtSaleDate.setOnClickListener(v ->
+                showDatePicker()
+        );
+
+        // -----------------------------------------------------
+        // IMAGE
+        // -----------------------------------------------------
+
+        btnChooseImage.setOnClickListener(v ->
+                imagePicker.launch("image/*")
+        );
+
+        // -----------------------------------------------------
+        // UPDATE
+        // -----------------------------------------------------
+
+        btnUpdateProduct.setOnClickListener(v ->
+                updateProduct()
+        );
+
+        // -----------------------------------------------------
+        // CANCEL
+        // -----------------------------------------------------
+
+        btnCancel.setOnClickListener(v ->
+                finish()
+        );
 
         loadProduct();
-
-        // =========================
-        // ĐỔI ẢNH
-        // =========================
-
-        btnChooseImage.setOnClickListener(v -> {
-
-            imagePicker.launch("image/*");
-
-        });
-
-        // =========================
-        // LƯU
-        // =========================
-
-        btnUpdateProduct.setOnClickListener(
-                v -> updateProduct()
-        );
-
-        // =========================
-        // HỦY
-        // =========================
-
-        btnCancel.setOnClickListener(
-                v -> finish()
-        );
     }
+
+    // =========================================================
+    // LOAD PRODUCT
+    // =========================================================
 
     private void loadProduct() {
 
-        Product product = null;
+        currentProduct =
+                databaseHelper.getProductById(
+                        productId
+                );
 
-        for (Product p :
-                databaseHelper.getAllProducts()) {
-
-            if (p.getId() == productId) {
-
-                product = p;
-                break;
-            }
-        }
-
-        if (product == null) {
+        if (currentProduct == null) {
 
             Toast.makeText(
                     this,
@@ -167,62 +269,152 @@ public class EditProductActivity extends AppCompatActivity {
             return;
         }
 
-        // =========================
-        // HIỂN THỊ DỮ LIỆU
-        // =========================
+        edtProductCode.setText(
+                currentProduct.getProductCode()
+        );
 
         edtProductName.setText(
-                product.getName()
+                currentProduct.getName()
         );
 
         edtProductPrice.setText(
                 String.valueOf(
-                        product.getPrice()
+                        currentProduct.getPrice()
                 )
         );
 
         edtProductStock.setText(
                 String.valueOf(
-                        product.getStock()
+                        currentProduct.getStock()
                 )
         );
 
-        edtProductDescription.setText(
-                product.getDescription()
+        edtSaleDate.setText(
+                currentProduct.getSaleDate()
         );
 
-        // =========================
-        // HIỂN THỊ ẢNH CŨ
-        // =========================
+        edtProductDescription.setText(
+                currentProduct.getDescription()
+        );
 
-        selectedImageUri =
-                product.getImageUri();
+        // -----------------------------------------------------
+        // STATUS
+        // -----------------------------------------------------
 
-        if (selectedImageUri != null
-                && !selectedImageUri.isEmpty()) {
+        String status =
+                currentProduct.getStatus();
 
-            try {
+        if ("Ngừng bán".equals(status)) {
 
-                imgProductPreview.setImageURI(
-                        Uri.parse(selectedImageUri)
-                );
-
-            } catch (Exception e) {
-
-                imgProductPreview.setImageResource(
-                        R.drawable.ic_launcher_foreground
-                );
-            }
+            spinnerStatus.setSelection(1);
 
         } else {
 
-            imgProductPreview.setImageResource(
-                    R.drawable.ic_launcher_foreground
-            );
+            spinnerStatus.setSelection(0);
         }
+
+        // -----------------------------------------------------
+        // IMAGE
+        // -----------------------------------------------------
+
+        selectedImagePath =
+                currentProduct.getImageUri();
+
+        loadImage(
+                selectedImagePath
+        );
     }
 
+    // =========================================================
+    // LOAD IMAGE
+    // =========================================================
+
+    private void loadImage(
+            String imagePath
+    ) {
+
+        if (imagePath != null
+                && !imagePath.trim().isEmpty()) {
+
+            try {
+
+                File file =
+                        new File(imagePath);
+
+                if (file.exists()) {
+
+                    imgProductPreview
+                            .setImageURI(
+                                    Uri.fromFile(file)
+                            );
+
+                    return;
+                }
+
+            } catch (Exception e) {
+
+                e.printStackTrace();
+            }
+        }
+
+        imgProductPreview.setImageResource(
+                android.R.drawable.ic_menu_gallery
+        );
+    }
+
+    // =========================================================
+    // DATE PICKER
+    // =========================================================
+
+    private void showDatePicker() {
+
+        Calendar calendar =
+                Calendar.getInstance();
+
+        int year =
+                calendar.get(Calendar.YEAR);
+
+        int month =
+                calendar.get(Calendar.MONTH);
+
+        int day =
+                calendar.get(Calendar.DAY_OF_MONTH);
+
+        DatePickerDialog dialog =
+                new DatePickerDialog(
+                        this,
+                        (view, selectedYear,
+                         selectedMonth,
+                         selectedDay) -> {
+
+                            String date =
+                                    String.format(
+                                            "%02d/%02d/%04d",
+                                            selectedDay,
+                                            selectedMonth + 1,
+                                            selectedYear
+                                    );
+
+                            edtSaleDate.setText(date);
+                        },
+                        year,
+                        month,
+                        day
+                );
+
+        dialog.show();
+    }
+
+    // =========================================================
+    // UPDATE
+    // =========================================================
+
     private void updateProduct() {
+
+        String productCode =
+                edtProductCode.getText()
+                        .toString()
+                        .trim();
 
         String name =
                 edtProductName.getText()
@@ -239,107 +431,302 @@ public class EditProductActivity extends AppCompatActivity {
                         .toString()
                         .trim();
 
+        String saleDate =
+                edtSaleDate.getText()
+                        .toString()
+                        .trim();
+
         String description =
                 edtProductDescription.getText()
                         .toString()
                         .trim();
 
-        // =========================
-        // KIỂM TRA
-        // =========================
+        String status =
+                spinnerStatus
+                        .getSelectedItem()
+                        .toString();
 
-        if (name.isEmpty()
-                || priceText.isEmpty()
-                || stockText.isEmpty()) {
+        // -----------------------------------------------------
+        // VALIDATE
+        // -----------------------------------------------------
 
-            Toast.makeText(
-                    this,
-                    "Vui lòng nhập đầy đủ thông tin",
-                    Toast.LENGTH_SHORT
-            ).show();
+        if (productCode.isEmpty()) {
+
+            edtProductCode.setError(
+                    "Vui lòng nhập mã sản phẩm"
+            );
+
+            return;
+        }
+
+        if (name.isEmpty()) {
+
+            edtProductName.setError(
+                    "Vui lòng nhập tên sản phẩm"
+            );
+
+            return;
+        }
+
+        if (priceText.isEmpty()) {
+
+            edtProductPrice.setError(
+                    "Vui lòng nhập giá"
+            );
+
+            return;
+        }
+
+        if (stockText.isEmpty()) {
+
+            edtProductStock.setError(
+                    "Vui lòng nhập tồn kho"
+            );
+
+            return;
+        }
+
+        if (saleDate.isEmpty()) {
+
+            edtSaleDate.setError(
+                    "Vui lòng chọn ngày bán"
+            );
+
+            return;
+        }
+
+        double price;
+
+        int stock;
+
+        try {
+
+            price =
+                    Double.parseDouble(
+                            priceText
+                    );
+
+        } catch (NumberFormatException e) {
+
+            edtProductPrice.setError(
+                    "Giá không hợp lệ"
+            );
 
             return;
         }
 
         try {
 
-            double price =
-                    Double.parseDouble(priceText);
-
-            int stock =
-                    Integer.parseInt(stockText);
-
-            if (price < 0) {
-
-                Toast.makeText(
-                        this,
-                        "Giá không được nhỏ hơn 0",
-                        Toast.LENGTH_SHORT
-                ).show();
-
-                return;
-            }
-
-            if (stock < 0) {
-
-                Toast.makeText(
-                        this,
-                        "Số lượng không được nhỏ hơn 0",
-                        Toast.LENGTH_SHORT
-                ).show();
-
-                return;
-            }
-
-            // =========================
-            // TẠO PRODUCT MỚI
-            // =========================
-
-            Product product =
-                    new Product(
-                            productId,
-                            name,
-                            price,
-                            description,
-                            stock,
-                            selectedImageUri
+            stock =
+                    Integer.parseInt(
+                            stockText
                     );
-
-            // =========================
-            // UPDATE DATABASE
-            // =========================
-
-            int result =
-                    databaseHelper.updateProduct(
-                            product
-                    );
-
-            if (result > 0) {
-
-                Toast.makeText(
-                        this,
-                        "Cập nhật sản phẩm thành công",
-                        Toast.LENGTH_SHORT
-                ).show();
-
-                finish();
-
-            } else {
-
-                Toast.makeText(
-                        this,
-                        "Cập nhật sản phẩm thất bại",
-                        Toast.LENGTH_SHORT
-                ).show();
-            }
 
         } catch (NumberFormatException e) {
 
+            edtProductStock.setError(
+                    "Tồn kho không hợp lệ"
+            );
+
+            return;
+        }
+
+        if (price < 0) {
+
+            edtProductPrice.setError(
+                    "Giá không được âm"
+            );
+
+            return;
+        }
+
+        if (stock < 0) {
+
+            edtProductStock.setError(
+                    "Tồn kho không được âm"
+            );
+
+            return;
+        }
+
+        // -----------------------------------------------------
+        // CHECK PRODUCT CODE
+        // -----------------------------------------------------
+
+        if (databaseHelper.isProductCodeExists(
+                productCode,
+                productId
+        )) {
+
+            edtProductCode.setError(
+                    "Mã sản phẩm đã tồn tại"
+            );
+
+            return;
+        }
+
+        // -----------------------------------------------------
+        // CREATE PRODUCT
+        // -----------------------------------------------------
+
+        Product product =
+                new Product(
+                        productId,
+                        productCode,
+                        name,
+                        price,
+                        description,
+                        stock,
+                        selectedImagePath,
+                        saleDate,
+                        status
+                );
+
+        // -----------------------------------------------------
+        // UPDATE DATABASE
+        // -----------------------------------------------------
+
+        int result =
+                databaseHelper.updateProduct(
+                        product
+                );
+
+        if (result > 0) {
+
             Toast.makeText(
                     this,
-                    "Giá hoặc số lượng không hợp lệ",
+                    "✓ Cập nhật sản phẩm thành công",
                     Toast.LENGTH_SHORT
             ).show();
+
+            finish();
+
+        } else {
+
+            Toast.makeText(
+                    this,
+                    "Cập nhật sản phẩm thất bại",
+                    Toast.LENGTH_SHORT
+            ).show();
+        }
+    }
+
+    // =========================================================
+    // COPY IMAGE
+    // =========================================================
+
+    private String copyImageToInternalStorage(
+            Uri uri
+    ) {
+
+        InputStream inputStream = null;
+        FileOutputStream outputStream = null;
+
+        try {
+
+            String extension = ".jpg";
+
+            String mimeType =
+                    getContentResolver()
+                            .getType(uri);
+
+            if (mimeType != null) {
+
+                if (mimeType.contains("png")) {
+
+                    extension = ".png";
+
+                } else if (mimeType.contains("webp")) {
+
+                    extension = ".webp";
+
+                } else if (mimeType.contains("jpeg")) {
+
+                    extension = ".jpg";
+                }
+            }
+
+            String fileName =
+                    "product_"
+                            + System.currentTimeMillis()
+                            + extension;
+
+            File imageDirectory =
+                    new File(
+                            getFilesDir(),
+                            "product_images"
+                    );
+
+            if (!imageDirectory.exists()) {
+                imageDirectory.mkdirs();
+            }
+
+            File imageFile =
+                    new File(
+                            imageDirectory,
+                            fileName
+                    );
+
+            inputStream =
+                    getContentResolver()
+                            .openInputStream(uri);
+
+            if (inputStream == null) {
+                return null;
+            }
+
+            outputStream =
+                    new FileOutputStream(
+                            imageFile
+                    );
+
+            byte[] buffer =
+                    new byte[8192];
+
+            int length;
+
+            while (
+                    (length =
+                            inputStream.read(buffer))
+                            > 0
+            ) {
+
+                outputStream.write(
+                        buffer,
+                        0,
+                        length
+                );
+            }
+
+            outputStream.flush();
+
+            return imageFile.getAbsolutePath();
+
+        } catch (Exception e) {
+
+            e.printStackTrace();
+
+            return null;
+
+        } finally {
+
+            try {
+
+                if (inputStream != null) {
+                    inputStream.close();
+                }
+
+            } catch (Exception ignored) {
+            }
+
+            try {
+
+                if (outputStream != null) {
+                    outputStream.close();
+                }
+
+            } catch (Exception ignored) {
+            }
         }
     }
 }

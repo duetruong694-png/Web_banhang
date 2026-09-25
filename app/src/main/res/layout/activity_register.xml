@@ -1,0 +1,366 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ScrollView
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@drawable/bg_register">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:paddingStart="22dp"
+        android:paddingEnd="22dp"
+        android:paddingTop="25dp"
+        android:paddingBottom="30dp">
+
+        <!-- LOGO -->
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="DAPP"
+            android:textSize="36sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:letterSpacing="0.08"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="CỬA HÀNG ABC"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:layout_marginTop="2dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tạo tài khoản và bắt đầu mua sắm"
+            android:textSize="13sp"
+            android:textColor="#FFE8E0"
+            android:layout_marginTop="5dp"
+            android:layout_marginBottom="20dp"/>
+
+
+        <!-- CARD -->
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="22dp"
+            android:background="@drawable/bg_register_card"
+            android:elevation="10dp">
+
+            <!-- TITLE -->
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tạo tài khoản mới ✨"
+                android:textSize="23sp"
+                android:textStyle="bold"
+                android:textColor="#222222"/>
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Điền thông tin bên dưới để đăng ký"
+                android:textSize="13sp"
+                android:textColor="#777777"
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="20dp"/>
+
+
+            <!-- USERNAME -->
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Tên đăng nhập"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="#444444"
+                android:layout_marginBottom="6dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingStart="12dp"
+                android:paddingEnd="8dp"
+                android:background="@drawable/bg_register_input">
+
+                <TextView
+                    android:layout_width="32dp"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="👤"
+                    android:textSize="18sp"/>
+
+                <EditText
+                    android:id="@+id/edtRegisterUsername"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:hint="Nhập tên đăng nhập"
+                    android:textSize="14sp"
+                    android:textColor="#222222"
+                    android:textColorHint="#999999"
+                    android:inputType="text"
+                    android:singleLine="true"
+                    android:background="@android:color/transparent"
+                    android:paddingStart="8dp"/>
+
+            </LinearLayout>
+
+
+            <!-- PASSWORD -->
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Mật khẩu"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="#444444"
+                android:layout_marginTop="14dp"
+                android:layout_marginBottom="6dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingStart="12dp"
+                android:paddingEnd="8dp"
+                android:background="@drawable/bg_register_input">
+
+                <TextView
+                    android:layout_width="32dp"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="🔒"
+                    android:textSize="18sp"/>
+
+                <EditText
+                    android:id="@+id/edtRegisterPassword"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:hint="Ít nhất 6 ký tự"
+                    android:textSize="14sp"
+                    android:textColor="#222222"
+                    android:textColorHint="#999999"
+                    android:inputType="textPassword"
+                    android:singleLine="true"
+                    android:background="@android:color/transparent"
+                    android:paddingStart="8dp"/>
+
+                <TextView
+                    android:id="@+id/tvShowRegisterPassword"
+                    android:layout_width="42dp"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="👁"
+                    android:textSize="18sp"
+                    android:clickable="true"
+                    android:focusable="true"/>
+
+            </LinearLayout>
+
+
+            <!-- FULL NAME -->
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Họ và tên"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="#444444"
+                android:layout_marginTop="14dp"
+                android:layout_marginBottom="6dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingStart="12dp"
+                android:paddingEnd="8dp"
+                android:background="@drawable/bg_register_input">
+
+                <TextView
+                    android:layout_width="32dp"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="🧑"
+                    android:textSize="18sp"/>
+
+                <EditText
+                    android:id="@+id/edtRegisterFullName"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:hint="Nhập họ và tên"
+                    android:textSize="14sp"
+                    android:textColor="#222222"
+                    android:textColorHint="#999999"
+                    android:inputType="textPersonName"
+                    android:singleLine="true"
+                    android:background="@android:color/transparent"
+                    android:paddingStart="8dp"/>
+
+            </LinearLayout>
+
+
+            <!-- PHONE -->
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Số điện thoại"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="#444444"
+                android:layout_marginTop="14dp"
+                android:layout_marginBottom="6dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="52dp"
+                android:orientation="horizontal"
+                android:gravity="center_vertical"
+                android:paddingStart="12dp"
+                android:paddingEnd="8dp"
+                android:background="@drawable/bg_register_input">
+
+                <TextView
+                    android:layout_width="32dp"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="📱"
+                    android:textSize="18sp"/>
+
+                <EditText
+                    android:id="@+id/edtRegisterPhone"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:hint="Nhập số điện thoại"
+                    android:textSize="14sp"
+                    android:textColor="#222222"
+                    android:textColorHint="#999999"
+                    android:inputType="phone"
+                    android:singleLine="true"
+                    android:background="@android:color/transparent"
+                    android:paddingStart="8dp"/>
+
+            </LinearLayout>
+
+
+            <!-- ADDRESS -->
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Địa chỉ"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="#444444"
+                android:layout_marginTop="14dp"
+                android:layout_marginBottom="6dp"/>
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="70dp"
+                android:orientation="horizontal"
+                android:gravity="top"
+                android:paddingStart="12dp"
+                android:paddingEnd="8dp"
+                android:paddingTop="8dp"
+                android:background="@drawable/bg_register_input">
+
+                <TextView
+                    android:layout_width="32dp"
+                    android:layout_height="match_parent"
+                    android:gravity="center"
+                    android:text="📍"
+                    android:textSize="18sp"/>
+
+                <EditText
+                    android:id="@+id/edtRegisterAddress"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_weight="1"
+                    android:hint="Nhập địa chỉ nhận hàng"
+                    android:textSize="14sp"
+                    android:textColor="#222222"
+                    android:textColorHint="#999999"
+                    android:inputType="textPostalAddress"
+                    android:gravity="top"
+                    android:background="@android:color/transparent"
+                    android:paddingStart="8dp"/>
+
+            </LinearLayout>
+
+
+            <!-- REGISTER -->
+
+            <Button
+                android:id="@+id/btnRegisterAccount"
+                android:layout_width="match_parent"
+                android:layout_height="54dp"
+                android:layout_marginTop="22dp"
+                android:text="TẠO TÀI KHOẢN"
+                android:textSize="15sp"
+                android:textStyle="bold"
+                android:textColor="#FFFFFF"
+                android:background="@drawable/bg_register_main_button"
+                android:stateListAnimator="@null"/>
+
+            <!-- BACK -->
+
+            <Button
+                android:id="@+id/btnBackLogin"
+                android:layout_width="match_parent"
+                android:layout_height="50dp"
+                android:layout_marginTop="10dp"
+                android:text="← QUAY LẠI ĐĂNG NHẬP"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:textColor="#EE4D2D"
+                android:background="@drawable/bg_register_back_button"
+                android:stateListAnimator="@null"/>
+
+        </LinearLayout>
+
+
+        <!-- FOOTER -->
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="🔒 Thông tin của bạn được bảo mật"
+            android:textSize="11sp"
+            android:textColor="#FFE8E0"
+            android:layout_marginTop="16dp"/>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="© 2026 DAPP • CỬA HÀNG ABC"
+            android:textSize="10sp"
+            android:textColor="#FFE8E0"
+            android:layout_marginTop="6dp"/>
+
+    </LinearLayout>
+
+</ScrollView>

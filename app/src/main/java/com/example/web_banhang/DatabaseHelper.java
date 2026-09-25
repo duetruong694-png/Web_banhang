@@ -6,47 +6,65 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
+import java.util.Locale;
 
 public class DatabaseHelper extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "shop.db";
-    private static final int DATABASE_VERSION = 4;
+
+    // =====================================================
+    // DATABASE VERSION
+    // =====================================================
+
+    private static final int DATABASE_VERSION = 6;
 
     private static final String TABLE_PRODUCT = "products";
     private static final String TABLE_CART = "cart_items";
+    private static final String TABLE_ORDER = "orders";
+    private static final String TABLE_ORDER_ITEM = "order_items";
+    private static final String TABLE_USER = "users";
 
     public DatabaseHelper(Context context) {
-        super(context, DATABASE_NAME, null, DATABASE_VERSION);
+        super(
+                context,
+                DATABASE_NAME,
+                null,
+                DATABASE_VERSION
+        );
     }
 
-    // =========================
-    // TẠO DATABASE
-    // =========================
+    // =====================================================
+    // CREATE DATABASE
+    // =====================================================
 
     @Override
     public void onCreate(SQLiteDatabase db) {
 
-        // =========================
-        // BẢNG SẢN PHẨM
-        // =========================
+        // -------------------------------------------------
+        // PRODUCTS
+        // -------------------------------------------------
 
         String createProductTable =
                 "CREATE TABLE " + TABLE_PRODUCT + " (" +
                         "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                        "productCode TEXT, " +
                         "name TEXT NOT NULL, " +
                         "price REAL NOT NULL, " +
                         "description TEXT, " +
                         "stock INTEGER NOT NULL, " +
-                        "imageUri TEXT" +
+                        "imageUri TEXT, " +
+                        "saleDate TEXT, " +
+                        "status TEXT DEFAULT 'Đang bán'" +
                         ")";
 
         db.execSQL(createProductTable);
 
-
-        // =========================
-        // BẢNG GIỎ HÀNG
-        // =========================
+        // -------------------------------------------------
+        // CART
+        // -------------------------------------------------
 
         String createCartTable =
                 "CREATE TABLE " + TABLE_CART + " (" +
@@ -61,13 +79,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         db.execSQL(createCartTable);
 
-
-        // =========================
-        // BẢNG ĐƠN HÀNG
-        // =========================
+        // -------------------------------------------------
+        // ORDERS
+        // -------------------------------------------------
 
         String createOrderTable =
-                "CREATE TABLE orders (" +
+                "CREATE TABLE " + TABLE_ORDER + " (" +
                         "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                         "username TEXT NOT NULL, " +
                         "customerName TEXT NOT NULL, " +
@@ -81,13 +98,12 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         db.execSQL(createOrderTable);
 
-
-        // =========================
-        // BẢNG CHI TIẾT ĐƠN HÀNG
-        // =========================
+        // -------------------------------------------------
+        // ORDER ITEMS
+        // -------------------------------------------------
 
         String createOrderItemTable =
-                "CREATE TABLE order_items (" +
+                "CREATE TABLE " + TABLE_ORDER_ITEM + " (" +
                         "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                         "orderId INTEGER NOT NULL, " +
                         "productId INTEGER NOT NULL, " +
@@ -97,11 +113,66 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         ")";
 
         db.execSQL(createOrderItemTable);
+
+        // -------------------------------------------------
+        // USERS
+        // -------------------------------------------------
+
+        String createUserTable =
+                "CREATE TABLE " + TABLE_USER + " (" +
+                        "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                        "username TEXT UNIQUE NOT NULL, " +
+                        "password TEXT NOT NULL, " +
+                        "fullName TEXT, " +
+                        "phone TEXT, " +
+                        "address TEXT, " +
+                        "role TEXT NOT NULL" +
+                        ")";
+
+        db.execSQL(createUserTable);
+
+        // -------------------------------------------------
+        // ADMIN MẶC ĐỊNH
+        // -------------------------------------------------
+
+        ContentValues adminValues = new ContentValues();
+
+        adminValues.put("username", "admin");
+        adminValues.put("password", "123456");
+        adminValues.put("fullName", "Quản trị viên");
+        adminValues.put("phone", "");
+        adminValues.put("address", "");
+        adminValues.put("role", "admin");
+
+        db.insert(
+                TABLE_USER,
+                null,
+                adminValues
+        );
+
+        // -------------------------------------------------
+        // USER MẶC ĐỊNH
+        // -------------------------------------------------
+
+        ContentValues userValues = new ContentValues();
+
+        userValues.put("username", "user");
+        userValues.put("password", "123456");
+        userValues.put("fullName", "Khách hàng");
+        userValues.put("phone", "");
+        userValues.put("address", "");
+        userValues.put("role", "user");
+
+        db.insert(
+                TABLE_USER,
+                null,
+                userValues
+        );
     }
 
-    // =========================
-    // NÂNG CẤP DATABASE
-    // =========================
+    // =====================================================
+    // DATABASE UPGRADE
+    // =====================================================
 
     @Override
     public void onUpgrade(
@@ -110,34 +181,32 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             int newVersion
     ) {
 
-        // =========================
+        // =================================================
         // VERSION 2
-        // =========================
+        // =================================================
 
         if (oldVersion < 2) {
 
             try {
-
                 db.execSQL(
                         "ALTER TABLE " +
                                 TABLE_PRODUCT +
                                 " ADD COLUMN imageUri TEXT"
                 );
-
             } catch (Exception ignored) {
             }
         }
 
-
-        // =========================
+        // =================================================
         // VERSION 3
-        // =========================
+        // =================================================
 
         if (oldVersion < 3) {
 
-            String createCartTable =
+            db.execSQL(
                     "CREATE TABLE IF NOT EXISTS " +
-                            TABLE_CART + " (" +
+                            TABLE_CART +
+                            " (" +
                             "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                             "username TEXT NOT NULL, " +
                             "productId INTEGER NOT NULL, " +
@@ -145,20 +214,20 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                             "price REAL NOT NULL, " +
                             "quantity INTEGER NOT NULL, " +
                             "imageUri TEXT" +
-                            ")";
-
-            db.execSQL(createCartTable);
+                            ")"
+            );
         }
 
-
-        // =========================
+        // =================================================
         // VERSION 4
-        // =========================
+        // =================================================
 
         if (oldVersion < 4) {
 
-            String createOrderTable =
-                    "CREATE TABLE IF NOT EXISTS orders (" +
+            db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS " +
+                            TABLE_ORDER +
+                            " (" +
                             "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                             "username TEXT NOT NULL, " +
                             "customerName TEXT NOT NULL, " +
@@ -168,40 +237,203 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                             "totalMoney REAL NOT NULL, " +
                             "status TEXT NOT NULL, " +
                             "orderDate TEXT NOT NULL" +
-                            ")";
+                            ")"
+            );
 
-            db.execSQL(createOrderTable);
-
-
-            String createOrderItemTable =
-                    "CREATE TABLE IF NOT EXISTS order_items (" +
+            db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS " +
+                            TABLE_ORDER_ITEM +
+                            " (" +
                             "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
                             "orderId INTEGER NOT NULL, " +
                             "productId INTEGER NOT NULL, " +
                             "productName TEXT NOT NULL, " +
                             "price REAL NOT NULL, " +
                             "quantity INTEGER NOT NULL" +
-                            ")";
+                            ")"
+            );
+        }
 
-            db.execSQL(createOrderItemTable);
+        // =================================================
+        // VERSION 5
+        // =================================================
+
+        if (oldVersion < 5) {
+
+            db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS " +
+                            TABLE_USER +
+                            " (" +
+                            "id INTEGER PRIMARY KEY AUTOINCREMENT, " +
+                            "username TEXT UNIQUE NOT NULL, " +
+                            "password TEXT NOT NULL, " +
+                            "fullName TEXT, " +
+                            "phone TEXT, " +
+                            "address TEXT, " +
+                            "role TEXT NOT NULL" +
+                            ")"
+            );
+
+            createDefaultUsers(db);
+        }
+
+        // =================================================
+        // VERSION 6
+        // THÊM THUỘC TÍNH SẢN PHẨM
+        // =================================================
+
+        if (oldVersion < 6) {
+
+            try {
+                db.execSQL(
+                        "ALTER TABLE " +
+                                TABLE_PRODUCT +
+                                " ADD COLUMN productCode TEXT"
+                );
+            } catch (Exception ignored) {
+            }
+
+            try {
+                db.execSQL(
+                        "ALTER TABLE " +
+                                TABLE_PRODUCT +
+                                " ADD COLUMN saleDate TEXT"
+                );
+            } catch (Exception ignored) {
+            }
+
+            try {
+                db.execSQL(
+                        "ALTER TABLE " +
+                                TABLE_PRODUCT +
+                                " ADD COLUMN status TEXT DEFAULT 'Đang bán'"
+                );
+            } catch (Exception ignored) {
+            }
+
+            // Các sản phẩm cũ
+            try {
+                db.execSQL(
+                        "UPDATE " +
+                                TABLE_PRODUCT +
+                                " SET status = 'Đang bán' " +
+                                "WHERE status IS NULL OR status = ''"
+                );
+            } catch (Exception ignored) {
+            }
         }
     }
 
-    // =========================
+    // =====================================================
+    // TẠO USER MẶC ĐỊNH
+    // =====================================================
+
+    private void createDefaultUsers(SQLiteDatabase db) {
+
+        Cursor adminCursor = db.rawQuery(
+                "SELECT id FROM " +
+                        TABLE_USER +
+                        " WHERE username = ?",
+                new String[]{"admin"}
+        );
+
+        if (!adminCursor.moveToFirst()) {
+
+            ContentValues values = new ContentValues();
+
+            values.put("username", "admin");
+            values.put("password", "123456");
+            values.put("fullName", "Quản trị viên");
+            values.put("phone", "");
+            values.put("address", "");
+            values.put("role", "admin");
+
+            db.insert(
+                    TABLE_USER,
+                    null,
+                    values
+            );
+        }
+
+        adminCursor.close();
+
+        Cursor userCursor = db.rawQuery(
+                "SELECT id FROM " +
+                        TABLE_USER +
+                        " WHERE username = ?",
+                new String[]{"user"}
+        );
+
+        if (!userCursor.moveToFirst()) {
+
+            ContentValues values = new ContentValues();
+
+            values.put("username", "user");
+            values.put("password", "123456");
+            values.put("fullName", "Khách hàng");
+            values.put("phone", "");
+            values.put("address", "");
+            values.put("role", "user");
+
+            db.insert(
+                    TABLE_USER,
+                    null,
+                    values
+            );
+        }
+
+        userCursor.close();
+    }
+
+    // =====================================================
     // PRODUCT
-    // =========================
+    // =====================================================
 
     public long addProduct(Product product) {
 
-        SQLiteDatabase db = this.getWritableDatabase();
+        SQLiteDatabase db = getWritableDatabase();
 
         ContentValues values = new ContentValues();
 
-        values.put("name", product.getName());
-        values.put("price", product.getPrice());
-        values.put("description", product.getDescription());
-        values.put("stock", product.getStock());
-        values.put("imageUri", product.getImageUri());
+        values.put(
+                "productCode",
+                product.getProductCode()
+        );
+
+        values.put(
+                "name",
+                product.getName()
+        );
+
+        values.put(
+                "price",
+                product.getPrice()
+        );
+
+        values.put(
+                "description",
+                product.getDescription()
+        );
+
+        values.put(
+                "stock",
+                product.getStock()
+        );
+
+        values.put(
+                "imageUri",
+                product.getImageUri()
+        );
+
+        values.put(
+                "saleDate",
+                product.getSaleDate()
+        );
+
+        values.put(
+                "status",
+                product.getStatus()
+        );
 
         long result = db.insert(
                 TABLE_PRODUCT,
@@ -214,70 +446,86 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return result;
     }
 
-    // =========================
-    // LẤY TẤT CẢ SẢN PHẨM
-    // =========================
+    // =====================================================
+    // KIỂM TRA MÃ SẢN PHẨM
+    // =====================================================
+
+    public boolean isProductCodeExists(String productCode) {
+
+        SQLiteDatabase db = getReadableDatabase();
+
+        Cursor cursor = db.rawQuery(
+                "SELECT id FROM " +
+                        TABLE_PRODUCT +
+                        " WHERE productCode = ?",
+                new String[]{
+                        productCode
+                }
+        );
+
+        boolean exists = cursor.moveToFirst();
+
+        cursor.close();
+        db.close();
+
+        return exists;
+    }
+
+    // =====================================================
+    // KIỂM TRA MÃ SẢN PHẨM KHI SỬA
+    // =====================================================
+
+    public boolean isProductCodeExists(
+            String productCode,
+            int excludeProductId
+    ) {
+
+        SQLiteDatabase db = getReadableDatabase();
+
+        Cursor cursor = db.rawQuery(
+                "SELECT id FROM " +
+                        TABLE_PRODUCT +
+                        " WHERE productCode = ? " +
+                        "AND id != ?",
+                new String[]{
+                        productCode,
+                        String.valueOf(excludeProductId)
+                }
+        );
+
+        boolean exists = cursor.moveToFirst();
+
+        cursor.close();
+        db.close();
+
+        return exists;
+    }
+
+    // =====================================================
+    // GET ALL PRODUCTS
+    // =====================================================
 
     public ArrayList<Product> getAllProducts() {
 
-        ArrayList<Product> productList =
+        ArrayList<Product> list =
                 new ArrayList<>();
 
         SQLiteDatabase db =
-                this.getReadableDatabase();
+                getReadableDatabase();
 
-        Cursor cursor = db.rawQuery(
-                "SELECT * FROM " +
-                        TABLE_PRODUCT +
-                        " ORDER BY id DESC",
-                null
-        );
+        Cursor cursor =
+                db.rawQuery(
+                        "SELECT * FROM " +
+                                TABLE_PRODUCT +
+                                " ORDER BY id DESC",
+                        null
+                );
 
         if (cursor.moveToFirst()) {
 
             do {
 
-                int id =
-                        cursor.getInt(
-                                cursor.getColumnIndexOrThrow("id")
-                        );
-
-                String name =
-                        cursor.getString(
-                                cursor.getColumnIndexOrThrow("name")
-                        );
-
-                double price =
-                        cursor.getDouble(
-                                cursor.getColumnIndexOrThrow("price")
-                        );
-
-                String description =
-                        cursor.getString(
-                                cursor.getColumnIndexOrThrow("description")
-                        );
-
-                int stock =
-                        cursor.getInt(
-                                cursor.getColumnIndexOrThrow("stock")
-                        );
-
-                String imageUri =
-                        cursor.getString(
-                                cursor.getColumnIndexOrThrow("imageUri")
-                        );
-
-                Product product =
-                        new Product(
-                                id,
-                                name,
-                                price,
-                                description,
-                                stock,
-                                imageUri
-                        );
-
-                productList.add(product);
+                list.add(cursorToProduct(cursor));
 
             } while (cursor.moveToNext());
         }
@@ -285,26 +533,180 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         cursor.close();
         db.close();
 
-        return productList;
+        return list;
     }
 
-    // =========================
-    // SỬA PRODUCT
-    // =========================
+    // =====================================================
+    // GET PRODUCT BY ID
+    // =====================================================
+
+    public Product getProductById(int productId) {
+
+        SQLiteDatabase db =
+                getReadableDatabase();
+
+        Cursor cursor =
+                db.rawQuery(
+                        "SELECT * FROM " +
+                                TABLE_PRODUCT +
+                                " WHERE id = ?",
+                        new String[]{
+                                String.valueOf(productId)
+                        }
+                );
+
+        Product product = null;
+
+        if (cursor.moveToFirst()) {
+
+            product = cursorToProduct(cursor);
+        }
+
+        cursor.close();
+        db.close();
+
+        return product;
+    }
+
+    // =====================================================
+    // CONVERT CURSOR -> PRODUCT
+    // =====================================================
+
+    private Product cursorToProduct(Cursor cursor) {
+
+        int id =
+                cursor.getInt(
+                        cursor.getColumnIndexOrThrow("id")
+                );
+
+        String productCode =
+                cursor.getString(
+                        cursor.getColumnIndexOrThrow(
+                                "productCode"
+                        )
+                );
+
+        String name =
+                cursor.getString(
+                        cursor.getColumnIndexOrThrow("name")
+                );
+
+        double price =
+                cursor.getDouble(
+                        cursor.getColumnIndexOrThrow("price")
+                );
+
+        String description =
+                cursor.getString(
+                        cursor.getColumnIndexOrThrow(
+                                "description"
+                        )
+                );
+
+        int stock =
+                cursor.getInt(
+                        cursor.getColumnIndexOrThrow(
+                                "stock"
+                        )
+                );
+
+        String imageUri =
+                cursor.getString(
+                        cursor.getColumnIndexOrThrow(
+                                "imageUri"
+                        )
+                );
+
+        String saleDate =
+                cursor.getString(
+                        cursor.getColumnIndexOrThrow(
+                                "saleDate"
+                        )
+                );
+
+        String status =
+                cursor.getString(
+                        cursor.getColumnIndexOrThrow(
+                                "status"
+                        )
+                );
+
+        if (productCode == null) {
+            productCode = "";
+        }
+
+        if (saleDate == null) {
+            saleDate = "";
+        }
+
+        if (status == null || status.isEmpty()) {
+            status = "Đang bán";
+        }
+
+        return new Product(
+                id,
+                productCode,
+                name,
+                price,
+                description,
+                stock,
+                imageUri,
+                saleDate,
+                status
+        );
+    }
+
+    // =====================================================
+    // UPDATE PRODUCT
+    // =====================================================
 
     public int updateProduct(Product product) {
 
         SQLiteDatabase db =
-                this.getWritableDatabase();
+                getWritableDatabase();
 
         ContentValues values =
                 new ContentValues();
 
-        values.put("name", product.getName());
-        values.put("price", product.getPrice());
-        values.put("description", product.getDescription());
-        values.put("stock", product.getStock());
-        values.put("imageUri", product.getImageUri());
+        values.put(
+                "productCode",
+                product.getProductCode()
+        );
+
+        values.put(
+                "name",
+                product.getName()
+        );
+
+        values.put(
+                "price",
+                product.getPrice()
+        );
+
+        values.put(
+                "description",
+                product.getDescription()
+        );
+
+        values.put(
+                "stock",
+                product.getStock()
+        );
+
+        values.put(
+                "imageUri",
+                product.getImageUri()
+        );
+
+        values.put(
+                "saleDate",
+                product.getSaleDate()
+        );
+
+        values.put(
+                "status",
+                product.getStatus()
+        );
 
         int result =
                 db.update(
@@ -312,7 +714,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         values,
                         "id = ?",
                         new String[]{
-                                String.valueOf(product.getId())
+                                String.valueOf(
+                                        product.getId()
+                                )
                         }
                 );
 
@@ -321,14 +725,14 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return result;
     }
 
-    // =========================
-    // XÓA PRODUCT
-    // =========================
+    // =====================================================
+    // DELETE PRODUCT
+    // =====================================================
 
     public int deleteProduct(int productId) {
 
         SQLiteDatabase db =
-                this.getWritableDatabase();
+                getWritableDatabase();
 
         int result =
                 db.delete(
@@ -344,9 +748,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return result;
     }
 
-    // =========================
-    // THÊM VÀO GIỎ HÀNG
-    // =========================
+    // =====================================================
+    // CART
+    // =====================================================
 
     public long addToCart(
             String username,
@@ -355,9 +759,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     ) {
 
         SQLiteDatabase db =
-                this.getWritableDatabase();
+                getWritableDatabase();
 
-        // Kiểm tra sản phẩm đã có trong giỏ chưa
         Cursor cursor =
                 db.rawQuery(
                         "SELECT id, quantity " +
@@ -366,30 +769,31 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                                 "AND productId = ?",
                         new String[]{
                                 username,
-                                String.valueOf(product.getId())
+                                String.valueOf(
+                                        product.getId()
+                                )
                         }
                 );
-
-        // =========================
-        // ĐÃ CÓ TRONG GIỎ
-        // =========================
 
         if (cursor.moveToFirst()) {
 
             int cartId =
                     cursor.getInt(
-                            cursor.getColumnIndexOrThrow("id")
+                            cursor.getColumnIndexOrThrow(
+                                    "id"
+                            )
                     );
 
             int oldQuantity =
                     cursor.getInt(
-                            cursor.getColumnIndexOrThrow("quantity")
+                            cursor.getColumnIndexOrThrow(
+                                    "quantity"
+                            )
                     );
 
             int newQuantity =
                     oldQuantity + quantity;
 
-            // Không vượt quá tồn kho
             if (newQuantity > product.getStock()) {
 
                 cursor.close();
@@ -436,10 +840,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             return result;
         }
-
-        // =========================
-        // CHƯA CÓ TRONG GIỎ
-        // =========================
 
         if (quantity > product.getStock()) {
 
@@ -495,19 +895,15 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return result;
     }
 
-    // =========================
-    // LẤY GIỎ HÀNG THEO USER
-    // =========================
-
     public ArrayList<CartItem> getCartItems(
             String username
     ) {
 
-        ArrayList<CartItem> cartList =
+        ArrayList<CartItem> list =
                 new ArrayList<>();
 
         SQLiteDatabase db =
-                this.getReadableDatabase();
+                getReadableDatabase();
 
         Cursor cursor =
                 db.rawQuery(
@@ -526,40 +922,54 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
                 int id =
                         cursor.getInt(
-                                cursor.getColumnIndexOrThrow("id")
+                                cursor.getColumnIndexOrThrow(
+                                        "id"
+                                )
                         );
 
                 String cartUsername =
                         cursor.getString(
-                                cursor.getColumnIndexOrThrow("username")
+                                cursor.getColumnIndexOrThrow(
+                                        "username"
+                                )
                         );
 
                 int productId =
                         cursor.getInt(
-                                cursor.getColumnIndexOrThrow("productId")
+                                cursor.getColumnIndexOrThrow(
+                                        "productId"
+                                )
                         );
 
                 String productName =
                         cursor.getString(
-                                cursor.getColumnIndexOrThrow("productName")
+                                cursor.getColumnIndexOrThrow(
+                                        "productName"
+                                )
                         );
 
                 double price =
                         cursor.getDouble(
-                                cursor.getColumnIndexOrThrow("price")
+                                cursor.getColumnIndexOrThrow(
+                                        "price"
+                                )
                         );
 
                 int quantity =
                         cursor.getInt(
-                                cursor.getColumnIndexOrThrow("quantity")
+                                cursor.getColumnIndexOrThrow(
+                                        "quantity"
+                                )
                         );
 
                 String imageUri =
                         cursor.getString(
-                                cursor.getColumnIndexOrThrow("imageUri")
+                                cursor.getColumnIndexOrThrow(
+                                        "imageUri"
+                                )
                         );
 
-                CartItem item =
+                list.add(
                         new CartItem(
                                 id,
                                 cartUsername,
@@ -568,9 +978,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                                 price,
                                 quantity,
                                 imageUri
-                        );
-
-                cartList.add(item);
+                        )
+                );
 
             } while (cursor.moveToNext());
         }
@@ -578,35 +987,8 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         cursor.close();
         db.close();
 
-        return cartList;
+        return list;
     }
-
-    // =========================
-    // XÓA SẢN PHẨM KHỎI GIỎ
-    // =========================
-
-    public int deleteCartItem(int cartId) {
-
-        SQLiteDatabase db =
-                this.getWritableDatabase();
-
-        int result =
-                db.delete(
-                        TABLE_CART,
-                        "id = ?",
-                        new String[]{
-                                String.valueOf(cartId)
-                        }
-                );
-
-        db.close();
-
-        return result;
-    }
-
-    // =========================
-    // CẬP NHẬT SỐ LƯỢNG
-    // =========================
 
     public int updateCartQuantity(
             int cartId,
@@ -614,7 +996,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     ) {
 
         SQLiteDatabase db =
-                this.getWritableDatabase();
+                getWritableDatabase();
 
         ContentValues values =
                 new ContentValues();
@@ -639,14 +1021,29 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         return result;
     }
 
-    // =========================
-    // XÓA TOÀN BỘ GIỎ CỦA USER
-    // =========================
+    public int deleteCartItem(int cartId) {
+
+        SQLiteDatabase db =
+                getWritableDatabase();
+
+        int result =
+                db.delete(
+                        TABLE_CART,
+                        "id = ?",
+                        new String[]{
+                                String.valueOf(cartId)
+                        }
+                );
+
+        db.close();
+
+        return result;
+    }
 
     public int clearCart(String username) {
 
         SQLiteDatabase db =
-                this.getWritableDatabase();
+                getWritableDatabase();
 
         int result =
                 db.delete(
@@ -661,6 +1058,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         return result;
     }
+
+    // =====================================================
+    // CREATE ORDER
+    // =====================================================
+
     public long createOrder(
             String username,
             String customerName,
@@ -672,17 +1074,13 @@ public class DatabaseHelper extends SQLiteOpenHelper {
     ) {
 
         SQLiteDatabase db =
-                this.getWritableDatabase();
+                getWritableDatabase();
 
         long orderId = -1;
 
         db.beginTransaction();
 
         try {
-
-            // =========================
-            // TẠO ĐƠN HÀNG
-            // =========================
 
             ContentValues orderValues =
                     new ContentValues();
@@ -723,11 +1121,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             );
 
             String orderDate =
-                    new java.text.SimpleDateFormat(
+                    new SimpleDateFormat(
                             "dd/MM/yyyy HH:mm:ss",
-                            java.util.Locale.getDefault()
+                            Locale.getDefault()
                     ).format(
-                            new java.util.Date()
+                            new Date()
                     );
 
             orderValues.put(
@@ -737,24 +1135,18 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
             orderId =
                     db.insert(
-                            "orders",
+                            TABLE_ORDER,
                             null,
                             orderValues
                     );
 
             if (orderId == -1) {
-
-                db.endTransaction();
-
-                db.close();
-
                 return -1;
             }
 
-
-            // =========================
-            // LƯU CHI TIẾT ĐƠN
-            // =========================
+            // ---------------------------------------------
+            // ORDER ITEMS
+            // ---------------------------------------------
 
             for (CartItem item : cartList) {
 
@@ -786,34 +1178,29 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                         item.getQuantity()
                 );
 
-                long itemResult =
+                long result =
                         db.insert(
-                                "order_items",
+                                TABLE_ORDER_ITEM,
                                 null,
                                 itemValues
                         );
 
-                if (itemResult == -1) {
-
-                    db.endTransaction();
-
-                    db.close();
-
+                if (result == -1) {
                     return -1;
                 }
             }
 
-
-            // =========================
+            // ---------------------------------------------
             // TRỪ TỒN KHO
-            // =========================
+            // ---------------------------------------------
 
             for (CartItem item : cartList) {
 
                 Cursor cursor =
                         db.rawQuery(
-                                "SELECT stock FROM products " +
-                                        "WHERE id = ?",
+                                "SELECT stock FROM " +
+                                        TABLE_PRODUCT +
+                                        " WHERE id = ?",
                                 new String[]{
                                         String.valueOf(
                                                 item.getProductId()
@@ -823,7 +1210,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
                 if (cursor.moveToFirst()) {
 
-                    int currentStock =
+                    int stock =
                             cursor.getInt(
                                     cursor.getColumnIndexOrThrow(
                                             "stock"
@@ -831,31 +1218,27 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                             );
 
                     int newStock =
-                            currentStock -
+                            stock -
                                     item.getQuantity();
 
                     if (newStock < 0) {
 
                         cursor.close();
 
-                        db.endTransaction();
-
-                        db.close();
-
                         return -2;
                     }
 
-                    ContentValues stockValues =
+                    ContentValues values =
                             new ContentValues();
 
-                    stockValues.put(
+                    values.put(
                             "stock",
                             newStock
                     );
 
                     db.update(
                             TABLE_PRODUCT,
-                            stockValues,
+                            values,
                             "id = ?",
                             new String[]{
                                     String.valueOf(
@@ -868,10 +1251,9 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                 cursor.close();
             }
 
-
-            // =========================
-            // XÓA GIỎ HÀNG
-            // =========================
+            // ---------------------------------------------
+            // XÓA CART
+            // ---------------------------------------------
 
             db.delete(
                     TABLE_CART,
@@ -880,7 +1262,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
                             username
                     }
             );
-
 
             db.setTransactionSuccessful();
 
@@ -895,5 +1276,522 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         }
 
         return orderId;
+    }
+
+    // =====================================================
+    // LẤY DANH SÁCH ĐƠN HÀNG
+    // =====================================================
+
+    public ArrayList<Order> getAllOrders() {
+
+        ArrayList<Order> list =
+                new ArrayList<>();
+
+        SQLiteDatabase db =
+                getReadableDatabase();
+
+        Cursor cursor =
+                db.rawQuery(
+                        "SELECT * FROM " +
+                                TABLE_ORDER +
+                                " ORDER BY id DESC",
+                        null
+                );
+
+        if (cursor.moveToFirst()) {
+
+            do {
+
+                Order order = new Order();
+
+                order.setId(
+                        cursor.getInt(
+                                cursor.getColumnIndexOrThrow("id")
+                        )
+                );
+
+                order.setUsername(
+                        cursor.getString(
+                                cursor.getColumnIndexOrThrow(
+                                        "username"
+                                )
+                        )
+                );
+
+                order.setCustomerName(
+                        cursor.getString(
+                                cursor.getColumnIndexOrThrow(
+                                        "customerName"
+                                )
+                        )
+                );
+
+                order.setPhone(
+                        cursor.getString(
+                                cursor.getColumnIndexOrThrow(
+                                        "phone"
+                                )
+                        )
+                );
+
+                order.setAddress(
+                        cursor.getString(
+                                cursor.getColumnIndexOrThrow(
+                                        "address"
+                                )
+                        )
+                );
+
+                order.setPaymentMethod(
+                        cursor.getString(
+                                cursor.getColumnIndexOrThrow(
+                                        "paymentMethod"
+                                )
+                        )
+                );
+
+                order.setTotalMoney(
+                        cursor.getDouble(
+                                cursor.getColumnIndexOrThrow(
+                                        "totalMoney"
+                                )
+                        )
+                );
+
+                order.setStatus(
+                        cursor.getString(
+                                cursor.getColumnIndexOrThrow(
+                                        "status"
+                                )
+                        )
+                );
+
+                order.setOrderDate(
+                        cursor.getString(
+                                cursor.getColumnIndexOrThrow(
+                                        "orderDate"
+                                )
+                        )
+                );
+
+                list.add(order);
+
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+        db.close();
+
+        return list;
+    }
+
+    // =====================================================
+    // LẤY ĐƠN HÀNG THEO ID
+    // =====================================================
+
+    public Order getOrderById(int orderId) {
+
+        SQLiteDatabase db =
+                getReadableDatabase();
+
+        Cursor cursor =
+                db.rawQuery(
+                        "SELECT * FROM " +
+                                TABLE_ORDER +
+                                " WHERE id = ?",
+                        new String[]{
+                                String.valueOf(orderId)
+                        }
+                );
+
+        Order order = null;
+
+        if (cursor.moveToFirst()) {
+
+            order = new Order();
+
+            order.setId(
+                    cursor.getInt(
+                            cursor.getColumnIndexOrThrow("id")
+                    )
+            );
+
+            order.setUsername(
+                    cursor.getString(
+                            cursor.getColumnIndexOrThrow(
+                                    "username"
+                            )
+                    )
+            );
+
+            order.setCustomerName(
+                    cursor.getString(
+                            cursor.getColumnIndexOrThrow(
+                                    "customerName"
+                            )
+                    )
+            );
+
+            order.setPhone(
+                    cursor.getString(
+                            cursor.getColumnIndexOrThrow(
+                                    "phone"
+                            )
+                    )
+            );
+
+            order.setAddress(
+                    cursor.getString(
+                            cursor.getColumnIndexOrThrow(
+                                    "address"
+                            )
+                    )
+            );
+
+            order.setPaymentMethod(
+                    cursor.getString(
+                            cursor.getColumnIndexOrThrow(
+                                    "paymentMethod"
+                            )
+                    )
+            );
+
+            order.setTotalMoney(
+                    cursor.getDouble(
+                            cursor.getColumnIndexOrThrow(
+                                    "totalMoney"
+                            )
+                    )
+            );
+
+            order.setStatus(
+                    cursor.getString(
+                            cursor.getColumnIndexOrThrow(
+                                    "status"
+                            )
+                    )
+            );
+
+            order.setOrderDate(
+                    cursor.getString(
+                            cursor.getColumnIndexOrThrow(
+                                    "orderDate"
+                            )
+                    )
+            );
+        }
+
+        cursor.close();
+        db.close();
+
+        return order;
+    }
+
+    // =====================================================
+    // CẬP NHẬT TRẠNG THÁI ĐƠN
+    // =====================================================
+
+    public int updateOrderStatus(
+            int orderId,
+            String status
+    ) {
+
+        SQLiteDatabase db =
+                getWritableDatabase();
+
+        ContentValues values =
+                new ContentValues();
+
+        values.put(
+                "status",
+                status
+        );
+
+        int result =
+                db.update(
+                        TABLE_ORDER,
+                        values,
+                        "id = ?",
+                        new String[]{
+                                String.valueOf(orderId)
+                        }
+                );
+
+        db.close();
+
+        return result;
+    }
+
+    // =====================================================
+    // LẤY CHI TIẾT SẢN PHẨM TRONG ĐƠN
+    // =====================================================
+
+    public ArrayList<OrderItem> getOrderItems(
+            int orderId
+    ) {
+
+        ArrayList<OrderItem> list =
+                new ArrayList<>();
+
+        SQLiteDatabase db =
+                getReadableDatabase();
+
+        Cursor cursor =
+                db.rawQuery(
+                        "SELECT * FROM " +
+                                TABLE_ORDER_ITEM +
+                                " WHERE orderId = ? " +
+                                "ORDER BY id ASC",
+                        new String[]{
+                                String.valueOf(orderId)
+                        }
+                );
+
+        if (cursor.moveToFirst()) {
+
+            do {
+
+                OrderItem item =
+                        new OrderItem();
+
+                item.setId(
+                        cursor.getInt(
+                                cursor.getColumnIndexOrThrow(
+                                        "id"
+                                )
+                        )
+                );
+
+                item.setOrderId(
+                        cursor.getInt(
+                                cursor.getColumnIndexOrThrow(
+                                        "orderId"
+                                )
+                        )
+                );
+
+                item.setProductId(
+                        cursor.getInt(
+                                cursor.getColumnIndexOrThrow(
+                                        "productId"
+                                )
+                        )
+                );
+
+                item.setProductName(
+                        cursor.getString(
+                                cursor.getColumnIndexOrThrow(
+                                        "productName"
+                                )
+                        )
+                );
+
+                item.setPrice(
+                        cursor.getDouble(
+                                cursor.getColumnIndexOrThrow(
+                                        "price"
+                                )
+                        )
+                );
+
+                item.setQuantity(
+                        cursor.getInt(
+                                cursor.getColumnIndexOrThrow(
+                                        "quantity"
+                                )
+                        )
+                );
+
+                list.add(item);
+
+            } while (cursor.moveToNext());
+        }
+
+        cursor.close();
+        db.close();
+
+        return list;
+    }
+
+    // =====================================================
+    // USER
+    // =====================================================
+
+    public long registerUser(
+            String username,
+            String password,
+            String fullName,
+            String phone,
+            String address
+    ) {
+
+        SQLiteDatabase db =
+                getWritableDatabase();
+
+        ContentValues values =
+                new ContentValues();
+
+        values.put("username", username);
+        values.put("password", password);
+        values.put("fullName", fullName);
+        values.put("phone", phone);
+        values.put("address", address);
+        values.put("role", "user");
+
+        long result;
+
+        try {
+
+            result =
+                    db.insertOrThrow(
+                            TABLE_USER,
+                            null,
+                            values
+                    );
+
+        } catch (Exception e) {
+
+            result = -1;
+        }
+
+        db.close();
+
+        return result;
+    }
+
+    public User loginUser(
+            String username,
+            String password
+    ) {
+
+        SQLiteDatabase db =
+                getReadableDatabase();
+
+        Cursor cursor =
+                db.rawQuery(
+                        "SELECT * FROM " +
+                                TABLE_USER +
+                                " WHERE username = ? " +
+                                "AND password = ?",
+                        new String[]{
+                                username,
+                                password
+                        }
+                );
+
+        User user = null;
+
+        if (cursor.moveToFirst()) {
+
+            user =
+                    cursorToUser(cursor);
+        }
+
+        cursor.close();
+        db.close();
+
+        return user;
+    }
+
+    public User getUser(
+            String username
+    ) {
+
+        SQLiteDatabase db =
+                getReadableDatabase();
+
+        Cursor cursor =
+                db.rawQuery(
+                        "SELECT * FROM " +
+                                TABLE_USER +
+                                " WHERE username = ?",
+                        new String[]{
+                                username
+                        }
+                );
+
+        User user = null;
+
+        if (cursor.moveToFirst()) {
+
+            user =
+                    cursorToUser(cursor);
+        }
+
+        cursor.close();
+        db.close();
+
+        return user;
+    }
+
+    private User cursorToUser(Cursor cursor) {
+
+        return new User(
+                cursor.getInt(
+                        cursor.getColumnIndexOrThrow("id")
+                ),
+                cursor.getString(
+                        cursor.getColumnIndexOrThrow(
+                                "username"
+                        )
+                ),
+                cursor.getString(
+                        cursor.getColumnIndexOrThrow(
+                                "password"
+                        )
+                ),
+                cursor.getString(
+                        cursor.getColumnIndexOrThrow(
+                                "fullName"
+                        )
+                ),
+                cursor.getString(
+                        cursor.getColumnIndexOrThrow(
+                                "phone"
+                        )
+                ),
+                cursor.getString(
+                        cursor.getColumnIndexOrThrow(
+                                "address"
+                        )
+                ),
+                cursor.getString(
+                        cursor.getColumnIndexOrThrow(
+                                "role"
+                        )
+                )
+        );
+    }
+
+    public int updateUser(
+            String username,
+            String fullName,
+            String phone,
+            String address
+    ) {
+
+        SQLiteDatabase db =
+                getWritableDatabase();
+
+        ContentValues values =
+                new ContentValues();
+
+        values.put("fullName", fullName);
+        values.put("phone", phone);
+        values.put("address", address);
+
+        int result =
+                db.update(
+                        TABLE_USER,
+                        values,
+                        "username = ?",
+                        new String[]{
+                                username
+                        }
+                );
+
+        db.close();
+
+        return result;
     }
 }
