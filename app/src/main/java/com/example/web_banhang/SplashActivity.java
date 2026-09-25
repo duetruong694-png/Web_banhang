@@ -1,16 +1,17 @@
 package com.example.web_banhang;
 
-import android.animation.AnimatorSet;
-import android.animation.ObjectAnimator;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.view.View;
-import android.view.animation.DecelerateInterpolator;
+import android.os.Handler;
+import android.os.Looper;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 public class SplashActivity extends AppCompatActivity {
+
+    private static final int SPLASH_TIME = 2200;
 
     private TextView tvLogo;
     private TextView tvName;
@@ -20,186 +21,86 @@ public class SplashActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        setContentView(
-                R.layout.activity_splash
-        );
+        // Hiển thị giao diện Splash
+        setContentView(R.layout.activity_splash);
 
-        tvLogo =
-                findViewById(R.id.tvLogo);
+        // Ánh xạ giao diện
+        tvLogo = findViewById(R.id.tvLogo);
+        tvName = findViewById(R.id.tvName);
+        tvSubtitle = findViewById(R.id.tvSubtitle);
 
-        tvName =
-                findViewById(R.id.tvName);
+        // Chờ 2.2 giây rồi kiểm tra trạng thái đăng nhập
+        new Handler(Looper.getMainLooper()).postDelayed(() -> {
 
-        tvSubtitle =
-                findViewById(R.id.tvSubtitle);
+            SharedPreferences preferences =
+                    getSharedPreferences("LOGIN", MODE_PRIVATE);
 
-        // Logo ban đầu
-        tvLogo.setScaleX(0f);
-        tvLogo.setScaleY(0f);
-        tvLogo.setAlpha(0f);
+            // Kiểm tra đã đăng nhập chưa
+            boolean isLoggedIn =
+                    preferences.getBoolean("isLoggedIn", false);
 
-        tvName.setAlpha(0f);
-        tvName.setTranslationY(60f);
+            // Lấy username
+            String username =
+                    preferences.getString("username", "");
 
-        tvSubtitle.setAlpha(0f);
-        tvSubtitle.setTranslationY(40f);
+            // Lấy role
+            String role =
+                    preferences.getString("role", "");
 
-        // Animation logo
-        ObjectAnimator logoScaleX =
-                ObjectAnimator.ofFloat(
-                        tvLogo,
-                        View.SCALE_X,
-                        0f,
-                        1.2f,
-                        1f
-                );
+            Intent intent;
 
-        ObjectAnimator logoScaleY =
-                ObjectAnimator.ofFloat(
-                        tvLogo,
-                        View.SCALE_Y,
-                        0f,
-                        1.2f,
-                        1f
-                );
+            // =====================================================
+            // ĐÃ ĐĂNG NHẬP
+            // =====================================================
+            if (isLoggedIn) {
 
-        ObjectAnimator logoAlpha =
-                ObjectAnimator.ofFloat(
-                        tvLogo,
-                        View.ALPHA,
-                        0f,
-                        1f
-                );
+                // -------------------------------------------------
+                // ADMIN
+                // -------------------------------------------------
+                if ("admin".equalsIgnoreCase(role)) {
 
-        AnimatorSet logoAnimation =
-                new AnimatorSet();
+                    intent = new Intent(
+                            SplashActivity.this,
+                            AdminActivity.class
+                    );
 
-        logoAnimation.playTogether(
-                logoScaleX,
-                logoScaleY,
-                logoAlpha
-        );
-
-        logoAnimation.setDuration(1000);
-
-        logoAnimation.setInterpolator(
-                new DecelerateInterpolator()
-        );
-
-        // Animation tên
-        ObjectAnimator nameAlpha =
-                ObjectAnimator.ofFloat(
-                        tvName,
-                        View.ALPHA,
-                        0f,
-                        1f
-                );
-
-        ObjectAnimator nameMove =
-                ObjectAnimator.ofFloat(
-                        tvName,
-                        View.TRANSLATION_Y,
-                        60f,
-                        0f
-                );
-
-        AnimatorSet nameAnimation =
-                new AnimatorSet();
-
-        nameAnimation.playTogether(
-                nameAlpha,
-                nameMove
-        );
-
-        nameAnimation.setDuration(700);
-
-        // Animation subtitle
-        ObjectAnimator subtitleAlpha =
-                ObjectAnimator.ofFloat(
-                        tvSubtitle,
-                        View.ALPHA,
-                        0f,
-                        1f
-                );
-
-        ObjectAnimator subtitleMove =
-                ObjectAnimator.ofFloat(
-                        tvSubtitle,
-                        View.TRANSLATION_Y,
-                        40f,
-                        0f
-                );
-
-        AnimatorSet subtitleAnimation =
-                new AnimatorSet();
-
-        subtitleAnimation.playTogether(
-                subtitleAlpha,
-                subtitleMove
-        );
-
-        subtitleAnimation.setDuration(600);
-
-        // Chạy lần lượt
-        logoAnimation.start();
-
-        logoAnimation.addListener(
-                new android.animation.AnimatorListenerAdapter() {
-
-                    @Override
-                    public void onAnimationEnd(
-                            android.animation.Animator animation
-                    ) {
-
-                        nameAnimation.start();
-                    }
                 }
-        );
 
-        nameAnimation.addListener(
-                new android.animation.AnimatorListenerAdapter() {
+                // -------------------------------------------------
+                // USER
+                // -------------------------------------------------
+                else {
 
-                    @Override
-                    public void onAnimationEnd(
-                            android.animation.Animator animation
-                    ) {
-
-                        subtitleAnimation.start();
-                    }
+                    intent = new Intent(
+                            SplashActivity.this,
+                            UserActivity.class
+                    );
                 }
-        );
 
-        subtitleAnimation.addListener(
-                new android.animation.AnimatorListenerAdapter() {
+            }
 
-                    @Override
-                    public void onAnimationEnd(
-                            android.animation.Animator animation
-                    ) {
+            // =====================================================
+            // CHƯA ĐĂNG NHẬP
+            // =====================================================
+            else {
 
-                        new android.os.Handler().postDelayed(
-                                () -> {
+                // Trang chủ vẫn cho phép xem sản phẩm
+                intent = new Intent(
+                        SplashActivity.this,
+                        UserActivity.class
+                );
+            }
 
-                                    Intent intent =
-                                            new Intent(
-                                                    SplashActivity.this,
-                                                    UserActivity.class
-                                            );
+            // Không cho quay lại Splash bằng nút Back
+            intent.setFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK
+                            | Intent.FLAG_ACTIVITY_CLEAR_TASK
+            );
 
-                                    startActivity(intent);
+            startActivity(intent);
 
-                                    finish();
+            finish();
 
-                                    overridePendingTransition(
-                                            android.R.anim.fade_in,
-                                            android.R.anim.fade_out
-                                    );
-
-                                },
-                                500
-                        );
-                    }
-                }
-        );
+        }, SPLASH_TIME);
     }
 }

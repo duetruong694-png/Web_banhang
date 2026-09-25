@@ -2,6 +2,7 @@ package com.example.web_banhang;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.MotionEvent;
@@ -13,6 +14,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
+import androidx.core.widget.CompoundButtonCompat;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.io.File;
@@ -125,16 +127,18 @@ public class ProductAdapter
         // =====================================================
 
         holder.quantity = 1;
+
         holder.tvQuantity.setText("1");
 
         // =====================================================
         // KIỂM TRA TRẠNG THÁI
         // =====================================================
 
+        String status = product.getStatus();
+
         boolean isStopped =
-                product.getStatus() != null
-                        && product.getStatus()
-                        .trim()
+                status != null
+                        && status.trim()
                         .equalsIgnoreCase("Ngừng bán");
 
         // =====================================================
@@ -143,22 +147,61 @@ public class ProductAdapter
 
         if (isStopped) {
 
-            // Đổi nút Mua ngay
+            // -------------------------------------------------
+            // CHỮ NÚT
+            // -------------------------------------------------
+
             holder.btnBuyNow.setText(
                     "Ngừng bán"
             );
 
-            // Không cho mua
+            // -------------------------------------------------
+            // QUAN TRỌNG:
+            // XÓA BACKGROUND/TINT CŨ
+            // -------------------------------------------------
+
+            holder.btnBuyNow.setBackgroundTintList(null);
+
+            // -------------------------------------------------
+            // NỀN ĐỎ
+            // -------------------------------------------------
+
+            holder.btnBuyNow.setBackgroundResource(
+                    R.drawable.bg_button_stop_selling
+            );
+
+            // -------------------------------------------------
+            // CHỮ TRẮNG
+            // -------------------------------------------------
+
+            holder.btnBuyNow.setTextColor(
+                    Color.WHITE
+            );
+
+            // -------------------------------------------------
+            // KHÔNG CHO MUA
+            // -------------------------------------------------
+
             holder.btnBuyNow.setEnabled(false);
 
-            // Không cho thêm giỏ
+            // -------------------------------------------------
+            // KHÔNG CHO THÊM GIỎ
+            // -------------------------------------------------
+
             holder.btnAddCart.setEnabled(false);
 
-            // Không cho tăng giảm số lượng
+            // -------------------------------------------------
+            // KHÔNG CHO TĂNG / GIẢM
+            // -------------------------------------------------
+
             holder.btnMinus.setEnabled(false);
+
             holder.btnPlus.setEnabled(false);
 
-            // Hiển thị trạng thái
+            // -------------------------------------------------
+            // HIỂN THỊ NGỪNG BÁN
+            // -------------------------------------------------
+
             holder.tvProductStock.setText(
                     "Ngừng bán"
             );
@@ -173,22 +216,68 @@ public class ProductAdapter
                     "Mua ngay"
             );
 
+            // -------------------------------------------------
+            // XÓA TINT
+            // -------------------------------------------------
+
+            holder.btnBuyNow.setBackgroundTintList(null);
+
+            // -------------------------------------------------
+            // KHÔI PHỤC BACKGROUND
+            // -------------------------------------------------
+
+            holder.btnBuyNow.setBackgroundResource(
+                    R.drawable.bg_button_buy
+            );
+
+            // -------------------------------------------------
+            // CHỮ TRẮNG
+            // -------------------------------------------------
+
+            holder.btnBuyNow.setTextColor(
+                    Color.WHITE
+            );
+
+            // -------------------------------------------------
+            // CHO PHÉP SỬ DỤNG
+            // -------------------------------------------------
+
             holder.btnBuyNow.setEnabled(true);
 
             holder.btnAddCart.setEnabled(true);
 
             holder.btnMinus.setEnabled(true);
+
             holder.btnPlus.setEnabled(true);
+
+            // -------------------------------------------------
+            // TỒN KHO
+            // -------------------------------------------------
+
+            holder.tvProductStock.setText(
+                    "Còn lại: " + product.getStock()
+            );
         }
 
         // =====================================================
         // BUTTON EFFECT
         // =====================================================
 
-        setupButtonEffect(holder.btnMinus);
-        setupButtonEffect(holder.btnPlus);
-        setupButtonEffect(holder.btnAddCart);
-        setupButtonEffect(holder.btnBuyNow);
+        setupButtonEffect(
+                holder.btnMinus
+        );
+
+        setupButtonEffect(
+                holder.btnPlus
+        );
+
+        setupButtonEffect(
+                holder.btnAddCart
+        );
+
+        setupButtonEffect(
+                holder.btnBuyNow
+        );
 
         // =====================================================
         // NÚT -
@@ -196,7 +285,6 @@ public class ProductAdapter
 
         holder.btnMinus.setOnClickListener(v -> {
 
-            // Nếu ngừng bán thì không làm gì
             if (isStopped) {
                 return;
             }
@@ -219,7 +307,6 @@ public class ProductAdapter
 
         holder.btnPlus.setOnClickListener(v -> {
 
-            // Nếu ngừng bán
             if (isStopped) {
                 return;
             }
@@ -284,10 +371,11 @@ public class ProductAdapter
 
         holder.btnAddCart.setOnClickListener(v -> {
 
-            Context context = v.getContext();
+            Context context =
+                    v.getContext();
 
             // -------------------------------------------------
-            // KIỂM TRA TRẠNG THÁI
+            // NGỪNG BÁN
             // -------------------------------------------------
 
             if (isStopped) {
@@ -302,7 +390,7 @@ public class ProductAdapter
             }
 
             // -------------------------------------------------
-            // KIỂM TRA LOGIN
+            // LOGIN
             // -------------------------------------------------
 
             if (!isLoggedIn()) {
@@ -357,7 +445,7 @@ public class ProductAdapter
             }
 
             // -------------------------------------------------
-            // THÊM DATABASE
+            // DATABASE
             // -------------------------------------------------
 
             long result =
@@ -395,10 +483,11 @@ public class ProductAdapter
 
         holder.btnBuyNow.setOnClickListener(v -> {
 
-            Context context = v.getContext();
+            Context context =
+                    v.getContext();
 
             // -------------------------------------------------
-            // KIỂM TRA TRẠNG THÁI
+            // NGỪNG BÁN
             // -------------------------------------------------
 
             if (isStopped) {
@@ -413,7 +502,7 @@ public class ProductAdapter
             }
 
             // -------------------------------------------------
-            // KIỂM TRA LOGIN
+            // LOGIN
             // -------------------------------------------------
 
             if (!isLoggedIn()) {
@@ -440,6 +529,10 @@ public class ProductAdapter
 
             int quantity =
                     holder.quantity;
+
+            // -------------------------------------------------
+            // KIỂM TRA SỐ LƯỢNG
+            // -------------------------------------------------
 
             if (quantity <= 0) {
 
@@ -520,10 +613,6 @@ public class ProductAdapter
         String imagePath =
                 product.getImageUri();
 
-        // -----------------------------------------------------
-        // ẢNH ĐÃ LƯU
-        // -----------------------------------------------------
-
         if (imagePath != null
                 && !imagePath.trim().isEmpty()) {
 
@@ -546,10 +635,6 @@ public class ProductAdapter
                 e.printStackTrace();
             }
         }
-
-        // -----------------------------------------------------
-        // DRAWABLE
-        // -----------------------------------------------------
 
         setDrawableImage(
                 imageView,
@@ -574,12 +659,16 @@ public class ProductAdapter
         }
 
         productName =
-                productName.trim()
+                productName
+                        .trim()
                         .toLowerCase(
                                 Locale.getDefault()
                         );
 
+        // -----------------------------------------------------
         // BÚT CHÌ
+        // -----------------------------------------------------
+
         if (productName.contains("bút chì")
                 || productName.contains("but chi")
                 || productName.contains("butchi")) {
@@ -591,7 +680,10 @@ public class ProductAdapter
             return;
         }
 
+        // -----------------------------------------------------
         // TẨY
+        // -----------------------------------------------------
+
         if (productName.contains("tẩy")
                 || productName.contains("tay")) {
 
@@ -602,7 +694,10 @@ public class ProductAdapter
             return;
         }
 
+        // -----------------------------------------------------
         // VỞ
+        // -----------------------------------------------------
+
         if (productName.contains("vở")
                 || productName.contains("vo")) {
 
@@ -613,7 +708,7 @@ public class ProductAdapter
     }
 
     // =========================================================
-    // CHI TIẾT
+    // CHI TIẾT SẢN PHẨM
     // =========================================================
 
     private void openProductDetail(
@@ -657,7 +752,6 @@ public class ProductAdapter
                 product.getName()
         );
 
-        // Truyền trạng thái
         intent.putExtra(
                 "status",
                 product.getStatus()
@@ -667,7 +761,7 @@ public class ProductAdapter
     }
 
     // =========================================================
-    // LOGIN
+    // KIỂM TRA LOGIN
     // =========================================================
 
     private boolean isLoggedIn() {
@@ -675,6 +769,10 @@ public class ProductAdapter
         return username != null
                 && !username.trim().isEmpty();
     }
+
+    // =========================================================
+    // MỞ LOGIN
+    // =========================================================
 
     private void openLogin(
             Context context
@@ -713,8 +811,8 @@ public class ProductAdapter
                         return false;
                     }
 
-                    if (event.getAction() ==
-                            MotionEvent.ACTION_HOVER_ENTER) {
+                    if (event.getAction()
+                            == MotionEvent.ACTION_HOVER_ENTER) {
 
                         v.animate()
                                 .scaleX(1.06f)
@@ -724,8 +822,8 @@ public class ProductAdapter
                                 .start();
 
                     } else if (
-                            event.getAction() ==
-                                    MotionEvent.ACTION_HOVER_EXIT
+                            event.getAction()
+                                    == MotionEvent.ACTION_HOVER_EXIT
                     ) {
 
                         v.animate()
@@ -761,6 +859,7 @@ public class ProductAdapter
                             break;
 
                         case MotionEvent.ACTION_UP:
+
                         case MotionEvent.ACTION_CANCEL:
 
                             v.animate()
@@ -779,7 +878,7 @@ public class ProductAdapter
     }
 
     // =========================================================
-    // SUCCESS ANIMATION
+    // ANIMATION THÊM GIỎ
     // =========================================================
 
     private void successAnimation(

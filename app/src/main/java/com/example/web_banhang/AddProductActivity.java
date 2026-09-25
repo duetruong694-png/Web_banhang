@@ -4,13 +4,12 @@ import android.app.DatePickerDialog;
 import android.content.Intent;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.OpenableColumns;
-import android.database.Cursor;
-import android.widget.ArrayAdapter;
+import android.text.TextUtils;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.Spinner;
+import android.widget.ArrayAdapter;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -20,7 +19,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
+import java.util.Locale;
 
 public class AddProductActivity extends AppCompatActivity {
 
@@ -36,13 +39,12 @@ public class AddProductActivity extends AppCompatActivity {
     private ImageView imgProductPreview;
 
     private Button btnChooseImage;
-    private Button btnSaveProduct;
     private Button btnCancel;
+    private Button btnSaveProduct;
 
     private DatabaseHelper databaseHelper;
 
-    // Đường dẫn ảnh được lưu trong bộ nhớ app
-    private String selectedImagePath = null;
+    private String selectedImagePath = "";
 
     // =========================================================
     // CHỌN ẢNH
@@ -53,40 +55,12 @@ public class AddProductActivity extends AppCompatActivity {
                     new ActivityResultContracts.GetContent(),
                     uri -> {
 
-                        if (uri == null) {
-                            return;
-                        }
+                        if (uri != null) {
 
-                        String savedPath = copyImageToInternalStorage(uri);
-
-                        if (savedPath != null) {
-
-                            selectedImagePath = savedPath;
-
-                            imgProductPreview.setImageURI(
-                                    Uri.fromFile(new File(savedPath))
-                            );
-
-                            Toast.makeText(
-                                    AddProductActivity.this,
-                                    "Đã chọn ảnh",
-                                    Toast.LENGTH_SHORT
-                            ).show();
-
-                        } else {
-
-                            Toast.makeText(
-                                    AddProductActivity.this,
-                                    "Không thể lưu ảnh",
-                                    Toast.LENGTH_SHORT
-                            ).show();
+                            saveImageToInternalStorage(uri);
                         }
                     }
             );
-
-    // =========================================================
-    // ON CREATE
-    // =========================================================
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -94,11 +68,9 @@ public class AddProductActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_add_product);
 
-        databaseHelper = new DatabaseHelper(this);
-
-        // -----------------------------------------------------
+        // =====================================================
         // ÁNH XẠ VIEW
-        // -----------------------------------------------------
+        // =====================================================
 
         edtProductCode =
                 findViewById(R.id.edtProductCode);
@@ -127,17 +99,20 @@ public class AddProductActivity extends AppCompatActivity {
         btnChooseImage =
                 findViewById(R.id.btnChooseImage);
 
-        btnSaveProduct =
-                findViewById(R.id.btnSaveProduct);
-
         btnCancel =
                 findViewById(R.id.btnCancel);
 
-        // -----------------------------------------------------
-        // SPINNER TRẠNG THÁI
-        // -----------------------------------------------------
+        btnSaveProduct =
+                findViewById(R.id.btnSaveProduct);
 
-        String[] statuses = {
+        databaseHelper =
+                new DatabaseHelper(this);
+
+        // =====================================================
+        // TRẠNG THÁI
+        // =====================================================
+
+        String[] statusList = {
                 "Đang bán",
                 "Ngừng bán"
         };
@@ -146,7 +121,7 @@ public class AddProductActivity extends AppCompatActivity {
                 new ArrayAdapter<>(
                         this,
                         android.R.layout.simple_spinner_item,
-                        statuses
+                        statusList
                 );
 
         statusAdapter.setDropDownViewResource(
@@ -155,50 +130,172 @@ public class AddProductActivity extends AppCompatActivity {
 
         spinnerStatus.setAdapter(statusAdapter);
 
-        // -----------------------------------------------------
+        // =====================================================
+        // TỰ ĐỘNG TẠO MÃ SẢN PHẨM
+        // =====================================================
+
+        generateNextProductCode();
+
+        // =====================================================
+        // TỰ ĐỘNG CHỌN NGÀY HIỆN TẠI
+        // =====================================================
+
+        setTodaySaleDate();
+
+        // =====================================================
         // CHỌN NGÀY
-        // -----------------------------------------------------
+        // =====================================================
 
-        edtSaleDate.setFocusable(false);
-        edtSaleDate.setClickable(true);
+        edtSaleDate.setOnClickListener(v -> {
 
-        edtSaleDate.setOnClickListener(v ->
-                showDatePicker()
-        );
+            showDatePicker();
+        });
 
-        // -----------------------------------------------------
+        // =====================================================
         // CHỌN ẢNH
-        // -----------------------------------------------------
+        // =====================================================
 
-        btnChooseImage.setOnClickListener(v ->
-                imagePicker.launch("image/*")
-        );
+        btnChooseImage.setOnClickListener(v -> {
 
-        // -----------------------------------------------------
-        // LƯU
-        // -----------------------------------------------------
+            imagePicker.launch("image/*");
+        });
 
-        btnSaveProduct.setOnClickListener(v ->
-                saveProduct()
-        );
+        // =====================================================
+        // LƯU SẢN PHẨM
+        // =====================================================
 
-        // -----------------------------------------------------
+        btnSaveProduct.setOnClickListener(v -> {
+
+            saveProduct();
+        });
+
+        // =====================================================
         // HỦY
-        // -----------------------------------------------------
+        // =====================================================
 
-        btnCancel.setOnClickListener(v ->
-                finish()
+        btnCancel.setOnClickListener(v -> {
+
+            finish();
+        });
+    }
+
+    // =============================================================
+    // TỰ ĐỘNG TẠO MÃ SP THEO THỨ TỰ
+    // =============================================================
+
+    private void generateNextProductCode() {
+
+        ArrayList<Product> products =
+                databaseHelper.getAllProducts();
+
+        int maxNumber = 0;
+
+        if (products != null) {
+
+            for (Product product : products) {
+
+                String code =
+                        product.getProductCode();
+
+                if (code == null) {
+                    continue;
+                }
+
+                code = code.trim()
+                        .toUpperCase(Locale.ROOT);
+
+                // =============================================
+                // Lấy phần số của SP001, SP002...
+                // =============================================
+
+                if (code.startsWith("SP")) {
+
+                    String numberPart =
+                            code.substring(2);
+
+                    try {
+
+                        int number =
+                                Integer.parseInt(numberPart);
+
+                        if (number > maxNumber) {
+                            maxNumber = number;
+                        }
+
+                    } catch (NumberFormatException ignored) {
+                    }
+                }
+            }
+        }
+
+        int nextNumber = maxNumber + 1;
+
+        String nextCode =
+                String.format(
+                        Locale.ROOT,
+                        "SP%03d",
+                        nextNumber
+                );
+
+        edtProductCode.setText(nextCode);
+
+        // Đưa con trỏ về cuối
+        edtProductCode.setSelection(
+                edtProductCode.length()
         );
     }
 
-    // =========================================================
-    // DATE PICKER
-    // =========================================================
+    // =============================================================
+    // TỰ ĐỘNG CHỌN NGÀY HIỆN TẠI
+    // =============================================================
+
+    private void setTodaySaleDate() {
+
+        SimpleDateFormat dateFormat =
+                new SimpleDateFormat(
+                        "dd/MM/yyyy",
+                        Locale.getDefault()
+                );
+
+        String today =
+                dateFormat.format(new Date());
+
+        edtSaleDate.setText(today);
+    }
+
+    // =============================================================
+    // HIỂN THỊ DATE PICKER
+    // =============================================================
 
     private void showDatePicker() {
 
         Calendar calendar =
                 Calendar.getInstance();
+
+        // Nếu ô ngày đã có dữ liệu thì lấy ngày đó
+        try {
+
+            String currentDate =
+                    edtSaleDate.getText()
+                            .toString()
+                            .trim();
+
+            if (!currentDate.isEmpty()) {
+
+                Date date =
+                        new SimpleDateFormat(
+                                "dd/MM/yyyy",
+                                Locale.getDefault()
+                        ).parse(currentDate);
+
+                if (date != null) {
+
+                    calendar.setTime(date);
+                }
+            }
+
+        } catch (Exception ignored) {
+        }
 
         int year =
                 calendar.get(Calendar.YEAR);
@@ -209,34 +306,118 @@ public class AddProductActivity extends AppCompatActivity {
         int day =
                 calendar.get(Calendar.DAY_OF_MONTH);
 
-        DatePickerDialog dialog =
+        DatePickerDialog datePickerDialog =
                 new DatePickerDialog(
                         this,
                         (view, selectedYear,
                          selectedMonth,
                          selectedDay) -> {
 
-                            String date =
+                            String selectedDate =
                                     String.format(
+                                            Locale.getDefault(),
                                             "%02d/%02d/%04d",
                                             selectedDay,
                                             selectedMonth + 1,
                                             selectedYear
                                     );
 
-                            edtSaleDate.setText(date);
+                            edtSaleDate.setText(
+                                    selectedDate
+                            );
                         },
                         year,
                         month,
                         day
                 );
 
-        dialog.show();
+        datePickerDialog.show();
     }
 
-    // =========================================================
+    // =============================================================
+    // CHỌN VÀ LƯU ẢNH VÀO BỘ NHỚ APP
+    // =============================================================
+
+    private void saveImageToInternalStorage(Uri uri) {
+
+        try {
+
+            File imageDirectory =
+                    new File(
+                            getFilesDir(),
+                            "product_images"
+                    );
+
+            if (!imageDirectory.exists()) {
+
+                imageDirectory.mkdirs();
+            }
+
+            String fileName =
+                    "product_"
+                            + System.currentTimeMillis()
+                            + ".jpg";
+
+            File imageFile =
+                    new File(
+                            imageDirectory,
+                            fileName
+                    );
+
+            InputStream inputStream =
+                    getContentResolver()
+                            .openInputStream(uri);
+
+            FileOutputStream outputStream =
+                    new FileOutputStream(
+                            imageFile
+                    );
+
+            byte[] buffer =
+                    new byte[4096];
+
+            int length;
+
+            while ((length =
+                    inputStream.read(buffer)) > 0) {
+
+                outputStream.write(
+                        buffer,
+                        0,
+                        length
+                );
+            }
+
+            outputStream.close();
+            inputStream.close();
+
+            selectedImagePath =
+                    imageFile.getAbsolutePath();
+
+            imgProductPreview.setImageURI(
+                    Uri.fromFile(imageFile)
+            );
+
+            Toast.makeText(
+                    this,
+                    "Đã chọn ảnh sản phẩm",
+                    Toast.LENGTH_SHORT
+            ).show();
+
+        } catch (Exception e) {
+
+            Toast.makeText(
+                    this,
+                    "Không thể lưu ảnh: "
+                            + e.getMessage(),
+                    Toast.LENGTH_LONG
+            ).show();
+        }
+    }
+
+    // =============================================================
     // LƯU SẢN PHẨM
-    // =========================================================
+    // =============================================================
 
     private void saveProduct() {
 
@@ -245,7 +426,7 @@ public class AddProductActivity extends AppCompatActivity {
                         .toString()
                         .trim();
 
-        String name =
+        String productName =
                 edtProductName.getText()
                         .toString()
                         .trim();
@@ -271,127 +452,71 @@ public class AddProductActivity extends AppCompatActivity {
                         .trim();
 
         String status =
-                spinnerStatus
-                        .getSelectedItem()
+                spinnerStatus.getSelectedItem()
                         .toString();
 
-        // -----------------------------------------------------
-        // KIỂM TRA
-        // -----------------------------------------------------
+        // =====================================================
+        // KIỂM TRA DỮ LIỆU
+        // =====================================================
 
-        if (productCode.isEmpty()) {
+        if (TextUtils.isEmpty(productCode)) {
 
             edtProductCode.setError(
                     "Vui lòng nhập mã sản phẩm"
             );
 
             edtProductCode.requestFocus();
+
             return;
         }
 
-        if (name.isEmpty()) {
+        if (TextUtils.isEmpty(productName)) {
 
             edtProductName.setError(
                     "Vui lòng nhập tên sản phẩm"
             );
 
             edtProductName.requestFocus();
+
             return;
         }
 
-        if (priceText.isEmpty()) {
+        if (TextUtils.isEmpty(priceText)) {
 
             edtProductPrice.setError(
-                    "Vui lòng nhập giá"
+                    "Vui lòng nhập giá sản phẩm"
             );
 
             edtProductPrice.requestFocus();
+
             return;
         }
 
-        if (stockText.isEmpty()) {
+        if (TextUtils.isEmpty(stockText)) {
 
             edtProductStock.setError(
                     "Vui lòng nhập số lượng"
             );
 
             edtProductStock.requestFocus();
+
             return;
         }
 
-        if (saleDate.isEmpty()) {
+        if (TextUtils.isEmpty(saleDate)) {
 
             edtSaleDate.setError(
                     "Vui lòng chọn ngày bán"
             );
 
             edtSaleDate.requestFocus();
-            return;
-        }
-
-        // -----------------------------------------------------
-        // CHUYỂN GIÁ
-        // -----------------------------------------------------
-
-        double price;
-
-        try {
-
-            price =
-                    Double.parseDouble(priceText);
-
-        } catch (NumberFormatException e) {
-
-            edtProductPrice.setError(
-                    "Giá không hợp lệ"
-            );
-
-            edtProductPrice.requestFocus();
-            return;
-        }
-
-        // -----------------------------------------------------
-        // CHUYỂN TỒN KHO
-        // -----------------------------------------------------
-
-        int stock;
-
-        try {
-
-            stock =
-                    Integer.parseInt(stockText);
-
-        } catch (NumberFormatException e) {
-
-            edtProductStock.setError(
-                    "Số lượng không hợp lệ"
-            );
-
-            edtProductStock.requestFocus();
-            return;
-        }
-
-        if (price < 0) {
-
-            edtProductPrice.setError(
-                    "Giá không được âm"
-            );
 
             return;
         }
 
-        if (stock < 0) {
-
-            edtProductStock.setError(
-                    "Số lượng không được âm"
-            );
-
-            return;
-        }
-
-        // -----------------------------------------------------
-        // KIỂM TRA MÃ TRÙNG
-        // -----------------------------------------------------
+        // =====================================================
+        // KIỂM TRA MÃ SP TRÙNG
+        // =====================================================
 
         if (databaseHelper.isProductCodeExists(
                 productCode
@@ -405,22 +530,92 @@ public class AddProductActivity extends AppCompatActivity {
 
             Toast.makeText(
                     this,
-                    "Mã sản phẩm đã tồn tại!",
+                    "Mã sản phẩm đã tồn tại",
                     Toast.LENGTH_SHORT
             ).show();
 
             return;
         }
 
-        // -----------------------------------------------------
+        // =====================================================
+        // CHUYỂN GIÁ
+        // =====================================================
+
+        double price;
+
+        try {
+
+            price =
+                    Double.parseDouble(
+                            priceText
+                                    .replace(",", "")
+                                    .replace(".", "")
+                    );
+
+        } catch (Exception e) {
+
+            edtProductPrice.setError(
+                    "Giá không hợp lệ"
+            );
+
+            edtProductPrice.requestFocus();
+
+            return;
+        }
+
+        if (price < 0) {
+
+            edtProductPrice.setError(
+                    "Giá không được âm"
+            );
+
+            edtProductPrice.requestFocus();
+
+            return;
+        }
+
+        // =====================================================
+        // CHUYỂN TỒN KHO
+        // =====================================================
+
+        int stock;
+
+        try {
+
+            stock =
+                    Integer.parseInt(stockText);
+
+        } catch (Exception e) {
+
+            edtProductStock.setError(
+                    "Số lượng không hợp lệ"
+            );
+
+            edtProductStock.requestFocus();
+
+            return;
+        }
+
+        if (stock < 0) {
+
+            edtProductStock.setError(
+                    "Số lượng không được âm"
+            );
+
+            edtProductStock.requestFocus();
+
+            return;
+        }
+
+        // =====================================================
         // TẠO PRODUCT
-        // -----------------------------------------------------
+        // =====================================================
 
         Product product =
                 new Product(
                         0,
                         productCode,
-                        name,
+                        productName,
                         price,
                         description,
                         stock,
@@ -429,18 +624,20 @@ public class AddProductActivity extends AppCompatActivity {
                         status
                 );
 
-        // -----------------------------------------------------
-        // INSERT DATABASE
-        // -----------------------------------------------------
+        // =====================================================
+        // THÊM VÀO DATABASE
+        // =====================================================
 
         long result =
-                databaseHelper.addProduct(product);
+                databaseHelper.addProduct(
+                        product
+                );
 
         if (result > 0) {
 
             Toast.makeText(
                     this,
-                    "✓ Thêm sản phẩm thành công",
+                    "Thêm sản phẩm thành công",
                     Toast.LENGTH_SHORT
             ).show();
 
@@ -453,116 +650,6 @@ public class AddProductActivity extends AppCompatActivity {
                     "Không thể thêm sản phẩm",
                     Toast.LENGTH_SHORT
             ).show();
-        }
-    }
-
-    // =========================================================
-    // COPY ẢNH VÀO BỘ NHỚ RIÊNG CỦA APP
-    // =========================================================
-
-    private String copyImageToInternalStorage(
-            Uri uri
-    ) {
-
-        InputStream inputStream = null;
-        FileOutputStream outputStream = null;
-
-        try {
-
-            String extension = ".jpg";
-
-            String mimeType =
-                    getContentResolver()
-                            .getType(uri);
-
-            if (mimeType != null) {
-
-                if (mimeType.contains("png")) {
-                    extension = ".png";
-
-                } else if (mimeType.contains("webp")) {
-                    extension = ".webp";
-
-                } else if (mimeType.contains("jpeg")) {
-                    extension = ".jpg";
-                }
-            }
-
-            String fileName =
-                    "product_"
-                            + System.currentTimeMillis()
-                            + extension;
-
-            File imageDirectory =
-                    new File(
-                            getFilesDir(),
-                            "product_images"
-                    );
-
-            if (!imageDirectory.exists()) {
-                imageDirectory.mkdirs();
-            }
-
-            File imageFile =
-                    new File(
-                            imageDirectory,
-                            fileName
-                    );
-
-            inputStream =
-                    getContentResolver()
-                            .openInputStream(uri);
-
-            if (inputStream == null) {
-                return null;
-            }
-
-            outputStream =
-                    new FileOutputStream(imageFile);
-
-            byte[] buffer =
-                    new byte[8192];
-
-            int length;
-
-            while (
-                    (length =
-                            inputStream.read(buffer))
-                            > 0
-            ) {
-
-                outputStream.write(
-                        buffer,
-                        0,
-                        length
-                );
-            }
-
-            outputStream.flush();
-
-            return imageFile.getAbsolutePath();
-
-        } catch (Exception e) {
-
-            e.printStackTrace();
-
-            return null;
-
-        } finally {
-
-            try {
-                if (inputStream != null) {
-                    inputStream.close();
-                }
-            } catch (Exception ignored) {
-            }
-
-            try {
-                if (outputStream != null) {
-                    outputStream.close();
-                }
-            } catch (Exception ignored) {
-            }
         }
     }
 }

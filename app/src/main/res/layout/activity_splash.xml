@@ -1,46 +1,59 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/bg_splash">
 
+    <!-- Nội dung trung tâm -->
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:orientation="vertical"
         android:gravity="center"
-        android:orientation="vertical">
+        android:padding="30dp">
 
+        <!-- LOGO DAPP -->
         <TextView
             android:id="@+id/tvLogo"
-            android:layout_width="130dp"
-            android:layout_height="130dp"
+            android:layout_width="150dp"
+            android:layout_height="150dp"
             android:gravity="center"
-            android:text="D"
-            android:textSize="75sp"
+            android:text="DAPP"
+            android:textColor="#FFFFFF"
+            android:textSize="38sp"
             android:textStyle="bold"
-            android:textColor="@android:color/white"
-            android:background="@drawable/bg_logo" />
+            android:letterSpacing="0.08"
+            android:background="@drawable/bg_logo"
+            android:elevation="8dp" />
 
+        <!-- TÊN CỬA HÀNG -->
         <TextView
             android:id="@+id/tvName"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="25dp"
-            android:text="DAPP"
-            android:textSize="42sp"
+            android:layout_marginTop="28dp"
+            android:text="CỬA HÀNG ABC"
+            android:textColor="#FFFFFF"
+            android:textSize="25sp"
             android:textStyle="bold"
-            android:textColor="@android:color/white" />
+            android:gravity="center"
+            android:letterSpacing="0.03" />
 
+        <!-- SLOGAN -->
         <TextView
             android:id="@+id/tvSubtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:text="DIGITAL SHOPPING"
-            android:textSize="14sp"
-            android:letterSpacing="0.2"
-            android:textColor="#E0E7FF" />
+            android:layout_marginTop="10dp"
+            android:text="MUA SẮM THẬT DỄ DÀNG"
+            android:textColor="#FFF3E0"
+            android:textSize="13sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:letterSpacing="0.08" />
 
     </LinearLayout>
 
