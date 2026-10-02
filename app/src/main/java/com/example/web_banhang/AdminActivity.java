@@ -1,10 +1,12 @@
 package com.example.web_banhang;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.widget.Button;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
@@ -30,151 +32,225 @@ public class AdminActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_admin);
 
-        // =========================
+        // ==============================
         // ÁNH XẠ VIEW
-        // =========================
+        // ==============================
 
         btnDanhSach = findViewById(R.id.btnDanhSach);
         btnThemSanPham = findViewById(R.id.btnThemSanPham);
         btnDonHang = findViewById(R.id.btnDonHang);
         btnDangXuat = findViewById(R.id.btnDangXuat);
-
         recyclerProducts = findViewById(R.id.recyclerProducts);
 
+        // ==============================
+        // KIỂM TRA NÚT ĐĂNG XUẤT
+        // ==============================
 
-        // =========================
-        // RECYCLERVIEW 2 CỘT
-        // =========================
+        if (btnDangXuat == null) {
+
+            Toast.makeText(
+                    AdminActivity.this,
+                    "LỖI: Không tìm thấy btnDangXuat",
+                    Toast.LENGTH_LONG
+            ).show();
+
+        } else {
+
+            // Đảm bảo nút có thể click
+            btnDangXuat.setClickable(true);
+            btnDangXuat.setFocusable(true);
+            btnDangXuat.setEnabled(true);
+
+            // ==============================
+            // CLICK ĐĂNG XUẤT
+            // ==============================
+
+            btnDangXuat.setOnClickListener(v -> {
+
+                Toast.makeText(
+                        AdminActivity.this,
+                        "ĐÃ CLICK NÚT ĐĂNG XUẤT",
+                        Toast.LENGTH_SHORT
+                ).show();
+
+                showLogoutDialog();
+            });
+        }
+
+        // ==============================
+        // RECYCLER VIEW
+        // ==============================
 
         GridLayoutManager gridLayoutManager =
                 new GridLayoutManager(this, 2);
 
         recyclerProducts.setLayoutManager(gridLayoutManager);
-
         recyclerProducts.setHasFixedSize(false);
-
         recyclerProducts.setNestedScrollingEnabled(true);
 
-
-        // =========================
+        // ==============================
         // DATABASE
-        // =========================
+        // ==============================
 
         databaseHelper = new DatabaseHelper(this);
 
-
-        // =========================
-        // DANH SÁCH SẢN PHẨM
-        // =========================
+        // ==============================
+        // NÚT DANH SÁCH
+        // ==============================
 
         btnDanhSach.setOnClickListener(v -> {
+
+            Toast.makeText(
+                    AdminActivity.this,
+                    "Đang tải danh sách sản phẩm...",
+                    Toast.LENGTH_SHORT
+            ).show();
+
             loadProducts();
         });
 
-
-        // =========================
-        // THÊM SẢN PHẨM
-        // =========================
+        // ==============================
+        // NÚT THÊM SẢN PHẨM
+        // ==============================
 
         btnThemSanPham.setOnClickListener(v -> {
 
-            Intent intent = new Intent(
-                    AdminActivity.this,
-                    AddProductActivity.class
-            );
+            Intent intent =
+                    new Intent(
+                            AdminActivity.this,
+                            AddProductActivity.class
+                    );
 
             startActivity(intent);
         });
 
-
-        // =========================
-        // QUẢN LÝ ĐƠN HÀNG
-        // =========================
+        // ==============================
+        // NÚT QUẢN LÝ ĐƠN HÀNG
+        // ==============================
 
         btnDonHang.setOnClickListener(v -> {
 
-            Intent intent = new Intent(
-                    AdminActivity.this,
-                    OrderManagementActivity.class
-            );
+            Intent intent =
+                    new Intent(
+                            AdminActivity.this,
+                            OrderManagementActivity.class
+                    );
 
             startActivity(intent);
         });
 
-
-        // =========================
-        // ĐĂNG XUẤT
-        // =========================
-
-        btnDangXuat.setOnClickListener(v -> {
-
-            getSharedPreferences(
-                    "LOGIN",
-                    MODE_PRIVATE
-            )
-                    .edit()
-                    .clear()
-                    .apply();
-
-            Intent intent = new Intent(
-                    AdminActivity.this,
-                    LoginActivity.class
-            );
-
-            intent.setFlags(
-                    Intent.FLAG_ACTIVITY_NEW_TASK
-                            | Intent.FLAG_ACTIVITY_CLEAR_TASK
-            );
-
-            startActivity(intent);
-
-            finish();
-        });
-
-
-        // =========================
+        // ==============================
         // LOAD SẢN PHẨM
-        // =========================
+        // ==============================
 
         loadProducts();
     }
 
+    // =========================================================
+    // HIỂN THỊ HỘP THOẠI ĐĂNG XUẤT
+    // =========================================================
 
-    // =====================================================
+    private void showLogoutDialog() {
+
+        new AlertDialog.Builder(AdminActivity.this)
+
+                .setTitle("Đăng xuất")
+
+                .setMessage(
+                        "Bạn có chắc chắn muốn đăng xuất khỏi tài khoản Admin không?"
+                )
+
+                .setNegativeButton(
+                        "Hủy",
+                        null
+                )
+
+                .setPositiveButton(
+                        "Đăng xuất",
+                        (dialog, which) -> logout()
+                )
+
+                .show();
+    }
+
+    // =========================================================
+    // ĐĂNG XUẤT
+    // =========================================================
+
+    private void logout() {
+
+        // Lấy SharedPreferences LOGIN
+        SharedPreferences preferences =
+                getSharedPreferences(
+                        "LOGIN",
+                        MODE_PRIVATE
+                );
+
+        // Xóa toàn bộ trạng thái đăng nhập
+        preferences.edit()
+                .clear()
+                .apply();
+
+        // Thông báo
+        Toast.makeText(
+                AdminActivity.this,
+                "Đăng xuất thành công",
+                Toast.LENGTH_SHORT
+        ).show();
+
+        // Chuyển về LoginActivity
+        Intent intent =
+                new Intent(
+                        AdminActivity.this,
+                        LoginActivity.class
+                );
+
+        // Xóa AdminActivity khỏi back stack
+        intent.addFlags(
+                Intent.FLAG_ACTIVITY_NEW_TASK |
+                        Intent.FLAG_ACTIVITY_CLEAR_TASK
+        );
+
+        startActivity(intent);
+
+        finish();
+    }
+
+    // =========================================================
     // LOAD DANH SÁCH SẢN PHẨM
-    // =====================================================
+    // =========================================================
 
     private void loadProducts() {
 
-        productList = databaseHelper.getAllProducts();
+        if (databaseHelper == null) {
+            return;
+        }
+
+        productList =
+                databaseHelper.getAllProducts();
 
         if (productList == null) {
             productList = new ArrayList<>();
         }
 
+        adapter =
+                new ProductAdminAdapter(
+                        productList,
+                        new ProductAdminAdapter.OnProductActionListener() {
 
-        adapter = new ProductAdminAdapter(
-                productList,
-                new ProductAdminAdapter.OnProductActionListener() {
+                            @Override
+                            public void onEdit(Product product) {
+                                editProduct(product);
+                            }
 
-                    @Override
-                    public void onEdit(Product product) {
-
-                        editProduct(product);
-                    }
-
-
-                    @Override
-                    public void onDelete(Product product) {
-
-                        deleteProduct(product);
-                    }
-                }
-        );
-
+                            @Override
+                            public void onDelete(Product product) {
+                                deleteProduct(product);
+                            }
+                        }
+                );
 
         recyclerProducts.setAdapter(adapter);
-
 
         if (productList.isEmpty()) {
 
@@ -186,14 +262,41 @@ public class AdminActivity extends AppCompatActivity {
         }
     }
 
+    // =========================================================
+    // SỬA SẢN PHẨM
+    // =========================================================
 
-    // =====================================================
+    private void editProduct(Product product) {
+
+        if (product == null) {
+            return;
+        }
+
+        Intent intent =
+                new Intent(
+                        AdminActivity.this,
+                        EditProductActivity.class
+                );
+
+        intent.putExtra(
+                "product_id",
+                product.getId()
+        );
+
+        startActivity(intent);
+    }
+
+    // =========================================================
     // XÓA SẢN PHẨM
-    // =====================================================
+    // =========================================================
 
     private void deleteProduct(Product product) {
 
-        new androidx.appcompat.app.AlertDialog.Builder(this)
+        if (product == null) {
+            return;
+        }
+
+        new AlertDialog.Builder(AdminActivity.this)
 
                 .setTitle("Xóa sản phẩm")
 
@@ -241,30 +344,9 @@ public class AdminActivity extends AppCompatActivity {
                 .show();
     }
 
-
-    // =====================================================
-    // SỬA SẢN PHẨM
-    // =====================================================
-
-    private void editProduct(Product product) {
-
-        Intent intent = new Intent(
-                AdminActivity.this,
-                EditProductActivity.class
-        );
-
-        intent.putExtra(
-                "product_id",
-                product.getId()
-        );
-
-        startActivity(intent);
-    }
-
-
-    // =====================================================
-    // QUAY LẠI ADMIN
-    // =====================================================
+    // =========================================================
+    // KHI QUAY LẠI ADMIN
+    // =========================================================
 
     @Override
     protected void onResume() {
