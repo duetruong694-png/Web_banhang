@@ -1,178 +1,90 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<androidx.cardview.widget.CardView
+<LinearLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="5dp"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="3dp"
-    app:cardUseCompatPadding="true">
+    android:orientation="vertical"
+    android:background="#FFFFFF"
+    android:padding="8dp">
+
+    <ImageView
+        android:id="@+id/imgProduct"
+        android:layout_width="match_parent"
+        android:layout_height="145dp"
+        android:scaleType="centerCrop"
+        android:src="@android:drawable/ic_menu_gallery"/>
+
+    <TextView
+        android:id="@+id/tvProductName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:text="Tên sản phẩm"
+        android:textSize="15sp"
+        android:textStyle="bold"
+        android:textColor="#333333"
+        android:maxLines="2"
+        android:ellipsize="end"/>
+
+    <TextView
+        android:id="@+id/tvProductPrice"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="5dp"
+        android:text="100.000 đ"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="#EE4D2D"/>
+
+    <TextView
+        android:id="@+id/tvProductStock"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="3dp"
+        android:text="Kho: 10"
+        android:textSize="12sp"
+        android:textColor="#777777"/>
+
+    <TextView
+        android:id="@+id/tvProductDescription"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:text="Mô tả sản phẩm"
+        android:textSize="11sp"
+        android:textColor="#777777"
+        android:maxLines="2"
+        android:ellipsize="end"/>
 
     <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="8dp"
-        android:background="#FFFFFF">
+        android:layout_height="42dp"
+        android:layout_marginTop="7dp"
+        android:orientation="horizontal">
 
-        <!-- ẢNH SẢN PHẨM -->
+        <Button
+            android:id="@+id/btnBuy"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:text="MUA NGAY"
+            android:textSize="10sp"
+            android:textStyle="bold"
+            android:textColor="#FFFFFF"
+            android:background="@drawable/bg_button_login"/>
 
-        <ImageView
-            android:id="@+id/imgProduct"
-            android:layout_width="match_parent"
-            android:layout_height="145dp"
-            android:scaleType="centerCrop"
-            android:background="#F5F5F5"
-            android:contentDescription="Ảnh sản phẩm" />
-
-
-        <!-- TÊN -->
-
-        <TextView
-            android:id="@+id/tvProductName"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
-            android:maxLines="2"
-            android:ellipsize="end"
-            android:text="Tên sản phẩm"
-            android:textColor="#222222"
-            android:textSize="15sp"
-            android:textStyle="bold" />
-
-
-        <!-- GIÁ -->
-
-        <TextView
-            android:id="@+id/tvProductPrice"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:text="0 đ"
-            android:textColor="#EE4D2D"
+        <Button
+            android:id="@+id/btnAddCart"
+            android:layout_width="45dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="5dp"
+            android:text="🛒"
             android:textSize="17sp"
-            android:textStyle="bold" />
-
-
-        <!-- TỒN KHO -->
-
-        <TextView
-            android:id="@+id/tvProductStock"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:text="Còn lại: 0"
-            android:textColor="#777777"
-            android:textSize="12sp" />
-
-
-        <!-- GIỮ ID NÀY ĐỂ PRODUCTADAPTER KHÔNG LỖI
-             Adapter đang setVisibility(GONE) -->
-
-        <TextView
-            android:id="@+id/tvProductDescription"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone"
-            android:text="Mô tả sản phẩm"
-            android:textColor="#666666"
-            android:textSize="12sp" />
-
-
-        <!-- SỐ LƯỢNG -->
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="36dp"
-            android:layout_marginTop="7dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-
-            <Button
-                android:id="@+id/btnMinus"
-                android:layout_width="36dp"
-                android:layout_height="34dp"
-                android:minWidth="0dp"
-                android:minHeight="0dp"
-                android:padding="0dp"
-                android:text="−"
-                android:textSize="18sp"
-                android:textColor="#FFFFFF"
-                android:background="@drawable/bg_quantity_button" />
-
-            <TextView
-                android:id="@+id/tvQuantity"
-                android:layout_width="0dp"
-                android:layout_height="34dp"
-                android:layout_weight="1"
-                android:gravity="center"
-                android:text="1"
-                android:textColor="#333333"
-                android:textSize="14sp"
-                android:textStyle="bold" />
-
-            <Button
-                android:id="@+id/btnPlus"
-                android:layout_width="36dp"
-                android:layout_height="34dp"
-                android:minWidth="0dp"
-                android:minHeight="0dp"
-                android:padding="0dp"
-                android:text="+"
-                android:textSize="18sp"
-                android:textColor="#FFFFFF"
-                android:background="@drawable/bg_quantity_button" />
-
-        </LinearLayout>
-
-
-        <!-- MUA NGAY + THÊM GIỎ CÙNG HÀNG -->
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="46dp"
-            android:layout_marginTop="8dp"
-            android:orientation="horizontal"
-            android:gravity="center_vertical">
-
-            <!-- MUA NGAY -->
-
-            <Button
-                android:id="@+id/btnBuyNow"
-                android:layout_width="0dp"
-                android:layout_height="42dp"
-                android:layout_weight="1"
-                android:minWidth="0dp"
-                android:minHeight="0dp"
-                android:padding="4dp"
-                android:text="Mua ngay"
-                android:textColor="#FFFFFF"
-                android:textSize="13sp"
-                android:textStyle="bold"
-                android:background="@drawable/bg_button_buy" />
-
-
-            <!-- THÊM GIỎ - CHỈ BIỂU TƯỢNG -->
-
-            <Button
-                android:id="@+id/btnAddCart"
-                android:layout_width="45dp"
-                android:layout_height="42dp"
-                android:layout_marginStart="6dp"
-                android:minWidth="0dp"
-                android:minHeight="0dp"
-                android:padding="0dp"
-                android:gravity="center"
-                android:text="🛒"
-                android:textColor="#FFFFFF"
-                android:textSize="19sp"
-                android:textStyle="bold"
-                android:background="@drawable/bg_button_cart" />
-
-        </LinearLayout>
+            android:textColor="#EE4D2D"
+            android:background="@drawable/bg_button_cart"/>
 
     </LinearLayout>
 
-</androidx.cardview.widget.CardView>
+</LinearLayout>

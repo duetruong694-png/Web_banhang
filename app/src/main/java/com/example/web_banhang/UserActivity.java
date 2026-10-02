@@ -2,38 +2,52 @@ package com.example.web_banhang;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.Gravity;
 import android.view.MotionEvent;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.PopupMenu;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.web_banhang.api.ApiService;
+import com.example.web_banhang.api.ProductApi;
+import com.example.web_banhang.api.ProductResponse;
+import com.example.web_banhang.api.RetrofitClient;
+
 import java.util.ArrayList;
+import java.util.List;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class UserActivity extends AppCompatActivity {
 
-    private Button btnLogin;
-    private Button btnLogout;
-    private Button btnCart;
-
+    private Button btnAccount;
     private TextView tvWelcome;
     private EditText edtSearch;
-
     private RecyclerView recyclerProducts;
 
-    private DatabaseHelper databaseHelper;
-    private ProductAdapter adapter;
+    private ApiService apiService;
 
-    private ArrayList<Product> productList;
+    private final ArrayList<ProductApi> productList =
+            new ArrayList<>();
 
-    private String username = null;
+    private ProductApiAdapter adapter;
+
     private boolean isLoggedIn = false;
+    private int userId = -1;
+    private String username = "";
+    private String role = "";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,31 +59,35 @@ public class UserActivity extends AppCompatActivity {
         // ÁNH XẠ VIEW
         // =========================
 
-        btnLogin = findViewById(R.id.btnLogin);
-        btnLogout = findViewById(R.id.btnLogout);
-        btnCart = findViewById(R.id.btnCart);
-
+        btnAccount = findViewById(R.id.btnAccount);
         tvWelcome = findViewById(R.id.tvWelcome);
         edtSearch = findViewById(R.id.edtSearch);
-
         recyclerProducts = findViewById(R.id.recyclerProducts);
 
-        databaseHelper = new DatabaseHelper(this);
+        // =========================
+        // RETROFIT
+        // =========================
 
-        productList = new ArrayList<>();
+        apiService =
+                RetrofitClient
+                        .getClient()
+                        .create(ApiService.class);
 
         // =========================
-        // RECYCLER VIEW - 2 CỘT
+        // RECYCLER VIEW
         // =========================
 
         recyclerProducts.setLayoutManager(
-                new GridLayoutManager(this, 2)
+                new GridLayoutManager(
+                        this,
+                        2
+                )
         );
 
         recyclerProducts.setHasFixedSize(false);
 
         // =========================
-        // LOGIN
+        // LOAD LOGIN
         // =========================
 
         loadLoginState();
@@ -77,70 +95,23 @@ public class UserActivity extends AppCompatActivity {
         updateLoginUI();
 
         // =========================
-        // LOAD SẢN PHẨM
+        // LOAD SẢN PHẨM MYSQL
         // =========================
 
         loadProducts();
 
         // =========================
-        // ĐĂNG NHẬP
+        // TÀI KHOẢN
         // =========================
 
-        btnLogin.setOnClickListener(v -> {
+        btnAccount.setOnClickListener(v -> {
 
-            openLogin();
+            setupButtonPress(v);
 
-        });
-
-        // =========================
-        // ĐĂNG XUẤT
-        // =========================
-
-        btnLogout.setOnClickListener(v -> {
-
-            SharedPreferences preferences =
-                    getSharedPreferences(
-                            "LOGIN",
-                            MODE_PRIVATE
-                    );
-
-            preferences.edit()
-                    .clear()
-                    .apply();
-
-            username = null;
-            isLoggedIn = false;
-
-            updateLoginUI();
-
-            loadProducts();
-        });
-
-        // =========================
-        // GIỎ HÀNG
-        // =========================
-
-        btnCart.setOnClickListener(v -> {
-
-            if (!isLoggedIn || username == null) {
-
-                openLogin();
-
-                return;
-            }
-
-            Intent intent =
-                    new Intent(
-                            UserActivity.this,
-                            CartActivity.class
-                    );
-
-            intent.putExtra(
-                    "username",
-                    username
+            v.postDelayed(
+                    this::showAccountMenu,
+                    100
             );
-
-            startActivity(intent);
         });
 
         // =========================
@@ -148,7 +119,7 @@ public class UserActivity extends AppCompatActivity {
         // =========================
 
         edtSearch.addTextChangedListener(
-                new android.text.TextWatcher() {
+                new TextWatcher() {
 
                     @Override
                     public void beforeTextChanged(
@@ -167,32 +138,24 @@ public class UserActivity extends AppCompatActivity {
                             int count
                     ) {
 
-                        searchProducts(
+                        filterProducts(
                                 s.toString()
                         );
                     }
 
                     @Override
                     public void afterTextChanged(
-                            android.text.Editable s
+                            Editable s
                     ) {
                     }
                 }
         );
 
-        // =========================
-        // HIỆU ỨNG NÚT
-        // =========================
-
-        setupButtonEffect(btnLogin);
-
-        setupButtonEffect(btnLogout);
-
-        setupButtonEffect(btnCart);
+        setupButtonEffect(btnAccount);
     }
 
     // =========================================================
-    // TRẠNG THÁI LOGIN
+    // LOGIN STATE
     // =========================================================
 
     private void loadLoginState() {
@@ -209,133 +172,452 @@ public class UserActivity extends AppCompatActivity {
                         false
                 );
 
-        if (isLoggedIn) {
+        userId =
+                preferences.getInt(
+                        "user_id",
+                        -1
+                );
 
-            username =
-                    preferences.getString(
-                            "username",
-                            null
-                    );
+        username =
+                preferences.getString(
+                        "username",
+                        ""
+                );
 
-        } else {
+        role =
+                preferences.getString(
+                        "role",
+                        ""
+                );
 
-            username = null;
+        if (username == null) {
+            username = "";
+        }
+
+        if (role == null) {
+            role = "";
         }
     }
 
     // =========================================================
-    // CẬP NHẬT GIAO DIỆN LOGIN
+    // UPDATE LOGIN UI
     // =========================================================
 
     private void updateLoginUI() {
 
-        if (isLoggedIn && username != null) {
+        if (isLoggedIn && userId != -1) {
 
-            btnLogin.setVisibility(View.GONE);
-
-            btnLogout.setVisibility(View.VISIBLE);
-
-            tvWelcome.setVisibility(View.VISIBLE);
-
-            tvWelcome.setText(
-                    "Xin chào, " + username
+            tvWelcome.setVisibility(
+                    View.VISIBLE
             );
+
+            if (username.isEmpty()) {
+
+                tvWelcome.setText(
+                        "Xin chào!"
+                );
+
+            } else {
+
+                tvWelcome.setText(
+                        "Xin chào, " + username
+                );
+            }
+
+            if ("admin".equalsIgnoreCase(role)) {
+
+                btnAccount.setText(
+                        "👤 Admin"
+                );
+
+            } else {
+
+                btnAccount.setText(
+                        "👤 Tài khoản"
+                );
+            }
 
         } else {
 
-            btnLogin.setVisibility(View.VISIBLE);
+            tvWelcome.setVisibility(
+                    View.VISIBLE
+            );
 
-            btnLogout.setVisibility(View.GONE);
+            tvWelcome.setText(
+                    "Chào mừng bạn đến với DAPP"
+            );
 
-            tvWelcome.setVisibility(View.GONE);
+            btnAccount.setText(
+                    "👤 Tài khoản"
+            );
         }
     }
 
     // =========================================================
-    // LOAD SẢN PHẨM
+    // ACCOUNT MENU
+    // =========================================================
+
+    private void showAccountMenu() {
+
+        PopupMenu popupMenu =
+                new PopupMenu(
+                        this,
+                        btnAccount,
+                        Gravity.END
+                );
+
+        if (!isLoggedIn || userId == -1) {
+
+            // =========================
+            // CHƯA ĐĂNG NHẬP
+            // =========================
+
+            popupMenu.getMenu().add(
+                    "🔐 Đăng nhập"
+            );
+
+            popupMenu.getMenu().add(
+                    "📝 Đăng ký"
+            );
+
+            popupMenu.setOnMenuItemClickListener(
+                    item -> {
+
+                        String title =
+                                item.getTitle().toString();
+
+                        if (title.contains("Đăng nhập")) {
+
+                            openLogin();
+
+                        } else if (
+                                title.contains("Đăng ký")
+                        ) {
+
+                            openRegister();
+                        }
+
+                        return true;
+                    }
+            );
+
+        } else if (
+                "admin".equalsIgnoreCase(role)
+        ) {
+
+            // =========================
+            // ADMIN
+            // =========================
+
+            popupMenu.getMenu().add(
+                    "👤 Thông tin tài khoản"
+            );
+
+            popupMenu.getMenu().add(
+                    "🏠 Xem trang chủ"
+            );
+
+            popupMenu.getMenu().add(
+                    "⚙️ Trang quản trị"
+            );
+
+            popupMenu.getMenu().add(
+                    "📦 Lịch sử đơn hàng"
+            );
+
+            popupMenu.getMenu().add(
+                    "🚪 Đăng xuất"
+            );
+
+            popupMenu.setOnMenuItemClickListener(
+                    item -> {
+
+                        String title =
+                                item.getTitle().toString();
+
+                        if (title.contains(
+                                "Thông tin tài khoản"
+                        )) {
+
+                            openUserInfo();
+
+                        } else if (
+                                title.contains(
+                                        "Xem trang chủ"
+                                )
+                        ) {
+
+                            popupMenu.dismiss();
+
+                        } else if (
+                                title.contains(
+                                        "Trang quản trị"
+                                )
+                        ) {
+
+                            openAdmin();
+
+                        } else if (
+                                title.contains(
+                                        "Lịch sử đơn hàng"
+                                )
+                        ) {
+
+                            openAdminOrders();
+
+                        } else if (
+                                title.contains(
+                                        "Đăng xuất"
+                                )
+                        ) {
+
+                            logout();
+                        }
+
+                        return true;
+                    }
+            );
+
+        } else {
+
+            // =========================
+            // USER
+            // =========================
+
+            popupMenu.getMenu().add(
+                    "👤 Thông tin tài khoản"
+            );
+
+            popupMenu.getMenu().add(
+                    "✏️ Sửa thông tin"
+            );
+
+            popupMenu.getMenu().add(
+                    "🛒 Giỏ hàng"
+            );
+
+            popupMenu.getMenu().add(
+                    "📦 Lịch sử mua hàng"
+            );
+
+            popupMenu.getMenu().add(
+                    "🗑️ Xóa tài khoản"
+            );
+
+            popupMenu.getMenu().add(
+                    "🚪 Đăng xuất"
+            );
+
+            popupMenu.setOnMenuItemClickListener(
+                    item -> {
+
+                        String title =
+                                item.getTitle().toString();
+
+                        if (title.contains(
+                                "Thông tin tài khoản"
+                        )) {
+
+                            openUserInfo();
+
+                        } else if (
+                                title.contains(
+                                        "Sửa thông tin"
+                                )
+                        ) {
+
+                            openEditUser();
+
+                        } else if (
+                                title.contains(
+                                        "Giỏ hàng"
+                                )
+                        ) {
+
+                            openCart();
+
+                        } else if (
+                                title.contains(
+                                        "Lịch sử mua hàng"
+                                )
+                        ) {
+
+                            openOrderHistory();
+
+                        } else if (
+                                title.contains(
+                                        "Xóa tài khoản"
+                                )
+                        ) {
+
+                            deleteAccount();
+
+                        } else if (
+                                title.contains(
+                                        "Đăng xuất"
+                                )
+                        ) {
+
+                            logout();
+                        }
+
+                        return true;
+                    }
+            );
+        }
+
+        popupMenu.show();
+    }
+
+    // =========================================================
+    // LOAD PRODUCTS FROM PHP
     // =========================================================
 
     private void loadProducts() {
 
-        productList.clear();
+        apiService
+                .getProducts()
+                .enqueue(
+                        new Callback<ProductResponse>() {
 
-        ArrayList<Product> products =
-                databaseHelper.getAllProducts();
+                            @Override
+                            public void onResponse(
+                                    Call<ProductResponse> call,
+                                    Response<ProductResponse> response
+                            ) {
 
-        if (products != null) {
+                                if (!response.isSuccessful()
+                                        || response.body() == null) {
 
-            productList.addAll(products);
-        }
+                                    Toast.makeText(
+                                            UserActivity.this,
+                                            "Không tải được sản phẩm",
+                                            Toast.LENGTH_SHORT
+                                    ).show();
 
-        adapter =
-                new ProductAdapter(
-                        productList,
-                        username,
-                        databaseHelper
+                                    return;
+                                }
+
+                                ProductResponse result =
+                                        response.body();
+
+                                if (!result.isSuccess()) {
+
+                                    Toast.makeText(
+                                            UserActivity.this,
+                                            result.getMessage(),
+                                            Toast.LENGTH_SHORT
+                                    ).show();
+
+                                    return;
+                                }
+
+                                productList.clear();
+
+                                List<ProductApi> products =
+                                        result.getProducts();
+
+                                if (products != null) {
+
+                                    productList.addAll(
+                                            products
+                                    );
+                                }
+
+                                setupProductAdapter(
+                                        productList
+                                );
+                            }
+
+                            @Override
+                            public void onFailure(
+                                    Call<ProductResponse> call,
+                                    Throwable t
+                            ) {
+
+                                Toast.makeText(
+                                        UserActivity.this,
+                                        "Không kết nối được máy chủ",
+                                        Toast.LENGTH_SHORT
+                                ).show();
+                            }
+                        }
                 );
-
-        recyclerProducts.setAdapter(adapter);
     }
 
     // =========================================================
-    // TÌM KIẾM
+    // SEARCH
     // =========================================================
 
-    private void searchProducts(String keyword) {
+    private void filterProducts(
+            String keyword
+    ) {
 
-        keyword =
-                keyword.trim().toLowerCase();
+        String key =
+                keyword
+                        .trim()
+                        .toLowerCase();
 
-        ArrayList<Product> filteredList =
+        ArrayList<ProductApi> filtered =
                 new ArrayList<>();
 
-        ArrayList<Product> allProducts =
-                databaseHelper.getAllProducts();
+        for (ProductApi product :
+                productList) {
 
-        if (allProducts == null) {
-            return;
-        }
+            String name =
+                    product.getName() == null
+                            ? ""
+                            : product.getName()
+                            .toLowerCase();
 
-        if (keyword.isEmpty()) {
+            String description =
+                    product.getDescription() == null
+                            ? ""
+                            : product.getDescription()
+                            .toLowerCase();
 
-            filteredList.addAll(
-                    allProducts
-            );
+            String code =
+                    product.getProductCode() == null
+                            ? ""
+                            : product.getProductCode()
+                            .toLowerCase();
 
-        } else {
+            if (key.isEmpty()
+                    || name.contains(key)
+                    || description.contains(key)
+                    || code.contains(key)) {
 
-            for (Product product : allProducts) {
-
-                String name =
-                        product.getName() == null
-                                ? ""
-                                : product.getName().toLowerCase();
-
-                String description =
-                        product.getDescription() == null
-                                ? ""
-                                : product.getDescription().toLowerCase();
-
-                if (name.contains(keyword)
-                        || description.contains(keyword)) {
-
-                    filteredList.add(product);
-                }
+                filtered.add(product);
             }
         }
 
-        adapter =
-                new ProductAdapter(
-                        filteredList,
-                        username,
-                        databaseHelper
-                );
-
-        recyclerProducts.setAdapter(adapter);
+        setupProductAdapter(filtered);
     }
 
     // =========================================================
-    // MỞ LOGIN
+    // PRODUCT ADAPTER
+    // =========================================================
+
+    private void setupProductAdapter(
+            ArrayList<ProductApi> list
+    ) {
+
+        adapter =
+                new ProductApiAdapter(
+                        this,
+                        list,
+                        isLoggedIn,
+                        userId,
+                        role
+                );
+
+        recyclerProducts.setAdapter(
+                adapter
+        );
+    }
+
+    // =========================================================
+    // LOGIN
     // =========================================================
 
     private void openLogin() {
@@ -355,118 +637,258 @@ public class UserActivity extends AppCompatActivity {
     }
 
     // =========================================================
-    // HIỆU ỨNG BUTTON
+    // REGISTER
     // =========================================================
 
-    private void setupButtonEffect(Button button) {
+    private void openRegister() {
 
-        button.setOnTouchListener(
-                new View.OnTouchListener() {
+        Intent intent =
+                new Intent(
+                        UserActivity.this,
+                        RegisterActivity.class
+                );
 
-                    @Override
-                    public boolean onTouch(
-                            View v,
-                            MotionEvent event
-                    ) {
+        startActivity(intent);
+    }
 
-                        switch (event.getAction()) {
+    // =========================================================
+    // USER INFO
+    // =========================================================
 
-                            // =========================
-                            // NHẤN XUỐNG
-                            // =========================
+    private void openUserInfo() {
 
-                            case MotionEvent.ACTION_DOWN:
+        Intent intent =
+                new Intent(
+                        UserActivity.this,
+                        UserInfoActivity.class
+                );
 
-                                v.animate()
-                                        .scaleX(0.94f)
-                                        .scaleY(0.94f)
-                                        .setDuration(80)
-                                        .start();
-
-                                v.setAlpha(0.70f);
-
-                                return false;
-
-                            // =========================
-                            // THẢ RA
-                            // =========================
-
-                            case MotionEvent.ACTION_UP:
-
-                                v.animate()
-                                        .scaleX(1.0f)
-                                        .scaleY(1.0f)
-                                        .setDuration(100)
-                                        .start();
-
-                                v.setAlpha(1.0f);
-
-                                return false;
-
-                            // =========================
-                            // HỦY
-                            // =========================
-
-                            case MotionEvent.ACTION_CANCEL:
-
-                                v.animate()
-                                        .scaleX(1.0f)
-                                        .scaleY(1.0f)
-                                        .setDuration(100)
-                                        .start();
-
-                                v.setAlpha(1.0f);
-
-                                return false;
-                        }
-
-                        return false;
-                    }
-                }
+        intent.putExtra(
+                "user_id",
+                userId
         );
 
-        // =========================
-        // HOVER
-        // =========================
+        startActivity(intent);
+    }
 
-        button.setOnHoverListener(
-                new View.OnHoverListener() {
+    // =========================================================
+    // EDIT USER
+    // =========================================================
 
-                    @Override
-                    public boolean onHover(
-                            View v,
-                            MotionEvent event
+    private void openEditUser() {
+
+        Intent intent =
+                new Intent(
+                        UserActivity.this,
+                        EditUserActivity.class
+                );
+
+        intent.putExtra(
+                "user_id",
+                userId
+        );
+
+        startActivity(intent);
+    }
+
+    // =========================================================
+    // CART
+    // =========================================================
+
+    private void openCart() {
+
+        Intent intent =
+                new Intent(
+                        UserActivity.this,
+                        CartActivity.class
+                );
+
+        intent.putExtra(
+                "user_id",
+                userId
+        );
+
+        intent.putExtra(
+                "username",
+                username
+        );
+
+        startActivity(intent);
+    }
+
+    // =========================================================
+    // ORDER HISTORY
+    // =========================================================
+
+    private void openOrderHistory() {
+
+        Intent intent =
+                new Intent(
+                        UserActivity.this,
+                        OrderHistoryActivity.class
+                );
+
+        intent.putExtra(
+                "user_id",
+                userId
+        );
+
+        startActivity(intent);
+    }
+
+    // =========================================================
+    // ADMIN
+    // =========================================================
+
+    private void openAdmin() {
+
+        Intent intent =
+                new Intent(
+                        UserActivity.this,
+                        AdminActivity.class
+                );
+
+        intent.putExtra(
+                "user_id",
+                userId
+        );
+
+        startActivity(intent);
+    }
+
+    // =========================================================
+    // ADMIN ORDERS
+    // =========================================================
+
+    private void openAdminOrders() {
+
+        Intent intent =
+                new Intent(
+                        UserActivity.this,
+                        AdminOrderActivity.class
+                );
+
+        intent.putExtra(
+                "user_id",
+                userId
+        );
+
+        startActivity(intent);
+    }
+
+    // =========================================================
+    // DELETE ACCOUNT
+    // =========================================================
+
+    private void deleteAccount() {
+
+        Toast.makeText(
+                this,
+                "Chức năng xóa tài khoản sẽ được xác nhận ở màn hình tài khoản",
+                Toast.LENGTH_SHORT
+        ).show();
+
+        openUserInfo();
+    }
+
+    // =========================================================
+    // LOGOUT
+    // =========================================================
+
+    private void logout() {
+
+        SharedPreferences preferences =
+                getSharedPreferences(
+                        "LOGIN",
+                        MODE_PRIVATE
+                );
+
+        preferences.edit()
+                .clear()
+                .apply();
+
+        isLoggedIn = false;
+        userId = -1;
+        username = "";
+        role = "";
+
+        updateLoginUI();
+
+        Toast.makeText(
+                this,
+                "Đã đăng xuất",
+                Toast.LENGTH_SHORT
+        ).show();
+
+        loadProducts();
+    }
+
+    // =========================================================
+    // BUTTON PRESS
+    // =========================================================
+
+    private void setupButtonPress(
+            View view
+    ) {
+
+        view.animate()
+                .scaleX(0.94f)
+                .scaleY(0.94f)
+                .setDuration(80)
+                .withEndAction(() -> {
+
+                    view.animate()
+                            .scaleX(1f)
+                            .scaleY(1f)
+                            .setDuration(100)
+                            .start();
+
+                })
+                .start();
+    }
+
+    // =========================================================
+    // BUTTON EFFECT
+    // =========================================================
+
+    private void setupButtonEffect(
+            Button button
+    ) {
+
+        button.setOnTouchListener(
+                (v, event) -> {
+
+                    switch (
+                            event.getAction()
                     ) {
 
-                        switch (event.getAction()) {
+                        case MotionEvent.ACTION_DOWN:
 
-                            case MotionEvent.ACTION_HOVER_ENTER:
+                            v.animate()
+                                    .scaleX(0.94f)
+                                    .scaleY(0.94f)
+                                    .setDuration(80)
+                                    .start();
 
-                                v.animate()
-                                        .scaleX(1.05f)
-                                        .scaleY(1.05f)
-                                        .setDuration(150)
-                                        .start();
+                            v.setAlpha(0.75f);
 
-                                v.setAlpha(0.82f);
+                            break;
 
-                                break;
+                        case MotionEvent.ACTION_UP:
+                        case MotionEvent.ACTION_CANCEL:
 
-                            case MotionEvent.ACTION_HOVER_EXIT:
+                            v.animate()
+                                    .scaleX(1f)
+                                    .scaleY(1f)
+                                    .setDuration(100)
+                                    .start();
 
-                                v.animate()
-                                        .scaleX(1.0f)
-                                        .scaleY(1.0f)
-                                        .setDuration(150)
-                                        .start();
+                            v.setAlpha(1f);
 
-                                v.setAlpha(1.0f);
-
-                                break;
-                        }
-
-                        return false;
+                            break;
                     }
+
+                    return false;
                 }
         );
     }

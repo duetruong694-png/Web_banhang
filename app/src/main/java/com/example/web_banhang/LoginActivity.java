@@ -13,7 +13,16 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.OnBackPressedCallback;
 import androidx.appcompat.app.AppCompatActivity;
+
+import com.example.web_banhang.api.ApiService;
+import com.example.web_banhang.api.LoginResponse;
+import com.example.web_banhang.api.RetrofitClient;
+
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class LoginActivity extends AppCompatActivity {
 
@@ -24,9 +33,9 @@ public class LoginActivity extends AppCompatActivity {
     private TextView tvBackHome;
     private TextView tvShowPassword;
 
-    private DatabaseHelper databaseHelper;
-
     private boolean passwordVisible = false;
+
+    private ApiService apiService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,7 +53,13 @@ public class LoginActivity extends AppCompatActivity {
         tvBackHome = findViewById(R.id.tvBackHome);
         tvShowPassword = findViewById(R.id.tvShowPassword);
 
-        databaseHelper = new DatabaseHelper(this);
+        // ==============================
+        // KHỞI TẠO API
+        // ==============================
+
+        apiService = RetrofitClient
+                .getClient()
+                .create(ApiService.class);
 
         // ==============================
         // HIỆU ỨNG MỞ TRANG
@@ -66,8 +81,10 @@ public class LoginActivity extends AppCompatActivity {
 
             buttonPressAnimation(btnLogin);
 
-            // Chờ animation rất ngắn rồi mới đăng nhập
-            btnLogin.postDelayed(this::login, 120);
+            btnLogin.postDelayed(
+                    this::login,
+                    120
+            );
         });
 
         // ==============================
@@ -87,7 +104,6 @@ public class LoginActivity extends AppCompatActivity {
 
                 startActivity(intent);
 
-                // Animation chuyển Activity
                 overridePendingTransition(
                         android.R.anim.fade_in,
                         android.R.anim.fade_out
@@ -129,39 +145,86 @@ public class LoginActivity extends AppCompatActivity {
         });
 
         // ==============================
-        // HIỆU ỨNG FOCUS Ô USERNAME
+        // FOCUS USERNAME
         // ==============================
 
-        edtUsername.setOnFocusChangeListener((v, hasFocus) -> {
+        edtUsername.setOnFocusChangeListener(
+                (v, hasFocus) -> {
 
-            if (hasFocus) {
-                editTextFocusAnimation(edtUsername);
-            }
-        });
+                    if (hasFocus) {
+                        editTextFocusAnimation(
+                                edtUsername
+                        );
+                    }
+                }
+        );
 
         // ==============================
-        // HIỆU ỨNG FOCUS Ô PASSWORD
+        // FOCUS PASSWORD
         // ==============================
 
-        edtPassword.setOnFocusChangeListener((v, hasFocus) -> {
+        edtPassword.setOnFocusChangeListener(
+                (v, hasFocus) -> {
 
-            if (hasFocus) {
-                editTextFocusAnimation(edtPassword);
-            }
-        });
+                    if (hasFocus) {
+                        editTextFocusAnimation(
+                                edtPassword
+                        );
+                    }
+                }
+        );
+
+        // ==============================
+        // NÚT BACK ĐIỆN THOẠI
+        // ==============================
+
+        getOnBackPressedDispatcher().addCallback(
+                this,
+                new OnBackPressedCallback(true) {
+
+                    @Override
+                    public void handleOnBackPressed() {
+
+                        Intent intent =
+                                new Intent(
+                                        LoginActivity.this,
+                                        UserActivity.class
+                                );
+
+                        intent.addFlags(
+                                Intent.FLAG_ACTIVITY_CLEAR_TOP |
+                                        Intent.FLAG_ACTIVITY_SINGLE_TOP
+                        );
+
+                        startActivity(intent);
+
+                        overridePendingTransition(
+                                android.R.anim.fade_in,
+                                android.R.anim.fade_out
+                        );
+
+                        finish();
+                    }
+                }
+        );
     }
 
     // =========================================================
-    // ĐĂNG NHẬP
+    // ĐĂNG NHẬP QUA PHP / MYSQL
     // =========================================================
 
     private void login() {
 
         String username =
-                edtUsername.getText().toString().trim();
+                edtUsername
+                        .getText()
+                        .toString()
+                        .trim();
 
         String password =
-                edtPassword.getText().toString().trim();
+                edtPassword
+                        .getText()
+                        .toString();
 
         // ==============================
         // KIỂM TRA USERNAME
@@ -198,119 +261,251 @@ public class LoginActivity extends AppCompatActivity {
         }
 
         // ==============================
-        // TÌM USER TRONG DATABASE
+        // KHÓA NÚT TRONG KHI LOGIN
         // ==============================
 
-        User user =
-                databaseHelper.loginUser(username, password);
+        btnLogin.setEnabled(false);
+
+        btnLogin.setText(
+                "Đang đăng nhập..."
+        );
 
         // ==============================
-        // SAI TÀI KHOẢN
+        // GỌI API
         // ==============================
 
-        if (user == null) {
+        apiService.login(
+                username,
+                password
+        ).enqueue(
+                new Callback<LoginResponse>() {
 
-            edtPassword.setError(
-                    "Tên đăng nhập hoặc mật khẩu không đúng"
-            );
+                    @Override
+                    public void onResponse(
+                            Call<LoginResponse> call,
+                            Response<LoginResponse> response
+                    ) {
 
-            edtPassword.requestFocus();
+                        btnLogin.setEnabled(true);
 
-            shakeView(edtPassword);
+                        btnLogin.setText(
+                                "ĐĂNG NHẬP"
+                        );
 
-            Toast.makeText(
-                    this,
-                    "Sai tên đăng nhập hoặc mật khẩu",
-                    Toast.LENGTH_SHORT
-            ).show();
+                        // ==============================
+                        // SERVER KHÔNG TRẢ VỀ ĐÚNG
+                        // ==============================
 
-            return;
-        }
+                        if (!response.isSuccessful()
+                                || response.body() == null) {
 
-        // ==============================
-        // LƯU TRẠNG THÁI ĐĂNG NHẬP
-        // ==============================
+                            showLoginError(
+                                    "Không thể kết nối máy chủ"
+                            );
 
-        SharedPreferences preferences =
-                getSharedPreferences(
-                        "LOGIN",
-                        MODE_PRIVATE
-                );
+                            return;
+                        }
 
-        preferences.edit()
-                .putBoolean("isLoggedIn", true)
-                .putString(
-                        "username",
-                        user.getUsername()
-                )
-                .putString(
-                        "role",
-                        user.getRole()
-                )
-                .apply();
+                        LoginResponse loginResponse =
+                                response.body();
 
-        // ==============================
-        // THÔNG BÁO
-        // ==============================
+                        // ==============================
+                        // LOGIN THẤT BẠI
+                        // ==============================
+
+                        if (!loginResponse.isSuccess()) {
+
+                            String message =
+                                    loginResponse.getMessage();
+
+                            if (message == null
+                                    || message.isEmpty()) {
+
+                                message =
+                                        "Tên đăng nhập hoặc mật khẩu không đúng";
+                            }
+
+                            showLoginError(message);
+
+                            return;
+                        }
+
+                        // ==============================
+                        // LẤY THÔNG TIN USER
+                        // ==============================
+
+                        com.example.web_banhang.api.User user =
+                                loginResponse.getUser();
+
+                        if (user == null) {
+
+                            showLoginError(
+                                    "Dữ liệu tài khoản không hợp lệ"
+                            );
+
+                            return;
+                        }
+
+                        // ==============================
+                        // LƯU LOGIN
+                        // ==============================
+
+                        SharedPreferences preferences =
+                                getSharedPreferences(
+                                        "LOGIN",
+                                        MODE_PRIVATE
+                                );
+
+                        preferences.edit()
+                                .putBoolean(
+                                        "isLoggedIn",
+                                        true
+                                )
+                                .putInt(
+                                        "user_id",
+                                        user.getId()
+                                )
+                                .putString(
+                                        "username",
+                                        user.getUsername()
+                                )
+                                .putString(
+                                        "fullName",
+                                        user.getFullName()
+                                )
+                                .putString(
+                                        "phone",
+                                        user.getPhone()
+                                )
+                                .putString(
+                                        "address",
+                                        user.getAddress()
+                                )
+                                .putString(
+                                        "role",
+                                        user.getRole()
+                                )
+                                .apply();
+
+                        // ==============================
+                        // THÔNG BÁO
+                        // ==============================
+
+                        Toast.makeText(
+                                LoginActivity.this,
+                                "Đăng nhập thành công 🎉",
+                                Toast.LENGTH_SHORT
+                        ).show();
+
+                        // ==============================
+                        // ADMIN
+                        // ==============================
+
+                        if ("admin".equalsIgnoreCase(
+                                user.getRole()
+                        )) {
+
+                            Intent intent =
+                                    new Intent(
+                                            LoginActivity.this,
+                                            AdminActivity.class
+                                    );
+
+                            intent.putExtra(
+                                    "user_id",
+                                    user.getId()
+                            );
+
+                            startActivity(intent);
+
+                            overridePendingTransition(
+                                    android.R.anim.fade_in,
+                                    android.R.anim.fade_out
+                            );
+
+                            finish();
+
+                        } else {
+
+                            // ==============================
+                            // USER
+                            // ==============================
+
+                            Intent intent =
+                                    new Intent(
+                                            LoginActivity.this,
+                                            UserActivity.class
+                                    );
+
+                            intent.putExtra(
+                                    "user_id",
+                                    user.getId()
+                            );
+
+                            intent.putExtra(
+                                    "username",
+                                    user.getUsername()
+                            );
+
+                            intent.addFlags(
+                                    Intent.FLAG_ACTIVITY_CLEAR_TOP |
+                                            Intent.FLAG_ACTIVITY_SINGLE_TOP
+                            );
+
+                            startActivity(intent);
+
+                            overridePendingTransition(
+                                    android.R.anim.fade_in,
+                                    android.R.anim.fade_out
+                            );
+
+                            finish();
+                        }
+                    }
+
+                    // =================================================
+                    // KHÔNG KẾT NỐI ĐƯỢC SERVER
+                    // =================================================
+
+                    @Override
+                    public void onFailure(
+                            Call<LoginResponse> call,
+                            Throwable t
+                    ) {
+
+                        btnLogin.setEnabled(true);
+
+                        btnLogin.setText(
+                                "ĐĂNG NHẬP"
+                        );
+
+                        showLoginError(
+                                "Không kết nối được máy chủ"
+                        );
+                    }
+                }
+        );
+    }
+
+    // =========================================================
+    // HIỂN THỊ LỖI LOGIN
+    // =========================================================
+
+    private void showLoginError(
+            String message
+    ) {
+
+        edtPassword.setError(message);
+
+        edtPassword.requestFocus();
+
+        shakeView(edtPassword);
 
         Toast.makeText(
-                this,
-                "Đăng nhập thành công 🎉",
+                LoginActivity.this,
+                message,
                 Toast.LENGTH_SHORT
         ).show();
-
-        // ==============================
-        // ADMIN
-        // ==============================
-
-        if ("admin".equalsIgnoreCase(user.getRole())) {
-
-            Intent intent =
-                    new Intent(
-                            LoginActivity.this,
-                            AdminActivity.class
-                    );
-
-            startActivity(intent);
-
-            overridePendingTransition(
-                    android.R.anim.fade_in,
-                    android.R.anim.fade_out
-            );
-
-            finish();
-
-        } else {
-
-            // ==============================
-            // USER
-            // ==============================
-
-            Intent intent =
-                    new Intent(
-                            LoginActivity.this,
-                            UserActivity.class
-                    );
-
-            intent.putExtra(
-                    "username",
-                    user.getUsername()
-            );
-
-            intent.addFlags(
-                    Intent.FLAG_ACTIVITY_CLEAR_TOP |
-                            Intent.FLAG_ACTIVITY_SINGLE_TOP
-            );
-
-            startActivity(intent);
-
-            overridePendingTransition(
-                    android.R.anim.fade_in,
-                    android.R.anim.fade_out
-            );
-
-            finish();
-        }
     }
 
     // =========================================================
@@ -362,14 +557,18 @@ public class LoginActivity extends AppCompatActivity {
 
         animation.setDuration(150);
 
-        tvShowPassword.startAnimation(animation);
+        tvShowPassword.startAnimation(
+                animation
+        );
     }
 
     // =========================================================
-    // HIỆU ỨNG KHI NHẤN BUTTON
+    // HIỆU ỨNG BUTTON
     // =========================================================
 
-    private void buttonPressAnimation(View view) {
+    private void buttonPressAnimation(
+            View view
+    ) {
 
         ScaleAnimation animation =
                 new ScaleAnimation(
@@ -391,14 +590,18 @@ public class LoginActivity extends AppCompatActivity {
 
         animation.setRepeatCount(1);
 
-        view.startAnimation(animation);
+        view.startAnimation(
+                animation
+        );
     }
 
     // =========================================================
     // HIỆU ỨNG FOCUS INPUT
     // =========================================================
 
-    private void editTextFocusAnimation(View view) {
+    private void editTextFocusAnimation(
+            View view
+    ) {
 
         ScaleAnimation animation =
                 new ScaleAnimation(
@@ -414,14 +617,18 @@ public class LoginActivity extends AppCompatActivity {
 
         animation.setDuration(150);
 
-        view.startAnimation(animation);
+        view.startAnimation(
+                animation
+        );
     }
 
     // =========================================================
-    // HIỆU ỨNG RUNG KHI NHẬP SAI
+    // HIỆU ỨNG RUNG KHI SAI
     // =========================================================
 
-    private void shakeView(View view) {
+    private void shakeView(
+            View view
+    ) {
 
         android.view.animation.TranslateAnimation animation =
                 new android.view.animation.TranslateAnimation(
@@ -439,7 +646,9 @@ public class LoginActivity extends AppCompatActivity {
 
         animation.setRepeatCount(4);
 
-        view.startAnimation(animation);
+        view.startAnimation(
+                animation
+        );
     }
 
     // =========================================================
@@ -449,7 +658,9 @@ public class LoginActivity extends AppCompatActivity {
     private void animatePage() {
 
         View root =
-                findViewById(android.R.id.content);
+                findViewById(
+                        android.R.id.content
+                );
 
         AlphaAnimation fade =
                 new AlphaAnimation(
@@ -460,33 +671,5 @@ public class LoginActivity extends AppCompatActivity {
         fade.setDuration(500);
 
         root.startAnimation(fade);
-    }
-
-    // =========================================================
-    // NÚT BACK ĐIỆN THOẠI
-    // =========================================================
-
-    @Override
-    public void onBackPressed() {
-
-        Intent intent =
-                new Intent(
-                        LoginActivity.this,
-                        UserActivity.class
-                );
-
-        intent.addFlags(
-                Intent.FLAG_ACTIVITY_CLEAR_TOP |
-                        Intent.FLAG_ACTIVITY_SINGLE_TOP
-        );
-
-        startActivity(intent);
-
-        overridePendingTransition(
-                android.R.anim.fade_in,
-                android.R.anim.fade_out
-        );
-
-        finish();
     }
 }

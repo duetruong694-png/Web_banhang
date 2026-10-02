@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#FFFFFF"
+    android:padding="10dp"
+    android:layout_margin="5dp">
+
+    <ImageView
+        android:id="@+id/imgProduct"
+        android:layout_width="match_parent"
+        android:layout_height="140dp"
+        android:scaleType="centerInside"
+        android:src="@android:drawable/ic_menu_gallery"/>
+
+    <TextView
+        android:id="@+id/tvProductCode"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Mã SP:"
+        android:textSize="13sp"
+        android:textColor="#777777"
+        android:paddingTop="5dp"/>
+
+    <TextView
+        android:id="@+id/tvProductName"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Tên sản phẩm"
+        android:textSize="17sp"
+        android:textStyle="bold"
+        android:textColor="#222222"
+        android:maxLines="2"
+        android:paddingTop="4dp"/>
+
+    <TextView
+        android:id="@+id/tvProductPrice"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="0 đ"
+        android:textSize="16sp"
+        android:textStyle="bold"
+        android:textColor="#EE4D2D"
+        android:paddingTop="4dp"/>
+
+    <TextView
+        android:id="@+id/tvProductStock"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Tồn kho: 0"
+        android:textSize="14sp"
+        android:paddingTop="3dp"/>
+
+    <TextView
+        android:id="@+id/tvProductStatus"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Trạng thái:"
+        android:textSize="14sp"
+        android:paddingTop="3dp"
+        android:paddingBottom="5dp"/>
+
+    <Button
+        android:id="@+id/btnEdit"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="SỬA"/>
+
+    <Button
+        android:id="@+id/btnDelete"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="XÓA"/>
+
+</LinearLayout>
